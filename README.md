@@ -44,3 +44,10 @@ The app opens on **Today**: a briefing that reads your history and tells you wha
 - Interval-style surges are detected in runs that were not recorded as sessions, and count as hard days for the coach
 - The VO2max estimate uses the profile (3, 4, 5, 8, 12, 20 and 30 minute windows)
 - Restoring a backup that carries profiles upgrades activities you already have
+
+## Recording accuracy
+
+- The phone's own speed (from the satellite signal's Doppler shift) is recorded at every GPS fix and used for the speed profile; position change is only the fallback
+- Every fix keeps the phone's exact timestamp (milliseconds), so recordings do not have the 1 s / 2 s timestamp rounding seen in Strava's GPX files
+- Cadence (steps per minute) is read from the motion sensor while recording and shown live and on the saved activity (whole run, fast parts vs the rest). Best with the phone in an armband, pocket or waistband; iPhone asks for motion permission once
+- The in-progress draft is written at most every 3 s (and whenever the page is hidden) to keep long recordings light

@@ -184,7 +184,7 @@ details.panel summary{cursor:pointer;font-weight:700}
     <div class="hero">
       <div class="hl">Current speed</div>
       <div class="hv" id="curBox"><span id="curSpd">--</span><small>km/h</small></div>
-      <div class="hp"><span id="curPace">--</span> /km</div>
+      <div class="hp"><span id="curPace">--</span> /km &nbsp;·&nbsp; <span id="curCad">--</span> spm</div>
       <canvas id="spark" aria-label="Speed over the last two minutes"></canvas>
     </div>
     <div class="trio">
@@ -390,7 +390,15 @@ function elapsedNow(){
   if(!act) return 0;
   return act.elapsed + (act.status === 'running' ? Date.now() - act.tickAt : 0);
 }
-function saveDraft(){ if(act) store.set('trackr.draft', act); }
+// The draft is the whole activity so far, so write it at most every 3 s (immediately at key moments), plus whenever the page is hidden.
+let lastDraft = 0;
+function saveDraft(force){
+  if(!act) return;
+  const now = Date.now(); if(!force && now - lastDraft < 3000) return;
+  lastDraft = now; store.set('trackr.draft', act);
+}
+window.addEventListener('pagehide', () => saveDraft(true));
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') saveDraft(true); });
 
 function render(){
   const ms = elapsedNow(), d = act ? act.dist : 0;
@@ -451,7 +459,7 @@ function advancePhase(skipped){
   act.laps.push({ time: Math.max(0, bound - act.lapT0), dist: act.dist - act.lapD0, label: ph.label, kind: ph.kind, dur: ph.dur*1000 });
   act.lapT0 = bound; act.lapD0 = act.dist; p.t0 = bound; p.idx++; p.lastTick = -1;
   if(p.idx >= p.phases.length){ p.done = true; cue('end'); } else cue(p.phases[p.idx].kind);
-  saveDraft(); render();
+  saveDraft(true); render();
 }
 // Summarise how a structured session went, so the coach can adapt the next one.
 const MEASURED = new Set(['work', 'easy', 'test']);
@@ -501,7 +509,7 @@ function lap(){
   if(time < 2000) return;
   act.laps.push({ time, dist, label: `Lap ${act.laps.length + 1}` });
   act.lapT0 = ms; act.lapD0 = act.dist;
-  buzz(40); saveDraft(); render();
+  buzz(40); saveDraft(true); render();
 }
 
 async function lockScreen(){
@@ -520,23 +528,23 @@ function start(){
     act.plan = { name: pendingPlan.name, phases: pendingPlan.phases, ckind: pendingPlan.ckind, level: pendingPlan.level, idx:0, t0:0, done:false, lastTick:-1 };
     pendingPlan = null; cue('rest');   // the first beep also unlocks audio, which browsers only allow after a tap
   }
-  buzz(60); lockScreen(); saveDraft(); render();
+  buzz(60); lockScreen(); enableMotion(); saveDraft(true); render();
 }
 function pause(){
   act.elapsed += Date.now() - act.tickAt; act.status = 'paused';
-  unlockScreen(); saveDraft(); render();
+  unlockScreen(); disableMotion(); saveDraft(true); render();
 }
 function resume(){
-  act.tickAt = Date.now(); act.status = 'running'; act.segs.push([]);
+  act.tickAt = Date.now(); act.status = 'running'; act.segs.push([]); act.lastFix = null;
   beep(1, 1);   // wake the audio context from this tap so phase beeps keep working
-  lockScreen(); saveDraft(); render();
+  lockScreen(); enableMotion(); saveDraft(true); render();
 }
 function finish(){
   if(act.status === 'running') act.elapsed += Date.now() - act.tickAt;
   act.status = 'done';
-  unlockScreen();
+  unlockScreen(); disableMotion();
   if(act.dist < 20){
-    if(!confirm('That activity is under 20 m. Discard it?')){ act.status = 'paused'; act.tickAt = Date.now(); saveDraft(); render(); return; }
+    if(!confirm('That activity is under 20 m. Discard it?')){ act.status = 'paused'; act.tickAt = Date.now(); saveDraft(true); render(); return; }
     act = null; store.del('trackr.draft'); render(); return;
   }
   const list = store.get('trackr.acts', []);
@@ -546,7 +554,7 @@ function finish(){
     laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0, label: ph ? ph.label : `Lap ${laps.length + 1}`, kind: ph ? ph.kind : undefined, dur: ph ? ph.dur*1000 : undefined });
   }
   const coach = coachResult(laps);
-  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps, prof: makeProfile(act.segs) });
+  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps, prof: profileFromSpeed(act.sp || []) || makeProfile(act.segs), cad: cadProfile(act.cad || []) });
   if(coach && coach.kind === 'test' && coach.testDist){
     const v = (coach.testDist - 504.9)/44.73;   // Cooper 12-minute formula
     if(v >= 10 && v <= 95){
@@ -616,6 +624,57 @@ function drawSpark(){
 }
 window.addEventListener('resize', drawSpark);
 
+/* ---------- speed profile from the phone's own speed, and cadence from the motion sensor ---------- */
+// sp = [[deciseconds since start, km/h x 10], ...] recorded at every GPS fix. Averaged over 10 s of moving time.
+function profileFromSpeed(sp){
+  const v = []; let accT = 0, accW = 0;
+  for(let i = 1; i < sp.length; i++){
+    const dt = (sp[i][0] - sp[i-1][0])/10;
+    if(dt <= 0 || dt > 4) continue;           // a pause or a lost fix: do not smear speed across it
+    let rem = dt;
+    while(rem > 1e-9){
+      const take = Math.min(rem, 10 - accT);
+      accW += sp[i][1]*take; accT += take; rem -= take;
+      if(accT >= 10 - 1e-9){ v.push(Math.round(accW/10)); accT = 0; accW = 0; }
+    }
+  }
+  return v.length >= 6 ? { s: 10, v } : undefined;
+}
+// Cadence: count foot strikes as peaks in the bounce of the phone's acceleration. Works best strapped to an arm or in a
+// pocket or waistband; a phone held in the hand is noisier. A swinging arm gives one peak per stride, so slow readings are doubled.
+let stepT = [], gAvg = null, prevA = [0, 0], prevT = 0, lastStep = 0, ampEMA = 1.5, cadSmooth = null, motionOn = false;
+function onMotion(e){
+  const a = e.accelerationIncludingGravity; if(!a || a.x == null) return;
+  const now = Date.now(), m = Math.hypot(a.x, a.y, a.z);
+  gAvg = gAvg == null ? m : gAvg + 0.02*(m - gAvg);
+  const x = m - gAvg, thr = Math.max(1.2, 0.5*ampEMA);
+  if(prevA[0] > prevA[1] && prevA[0] >= x && prevA[0] > thr && prevT - lastStep > 280){
+    lastStep = prevT; stepT.push(prevT); ampEMA += 0.2*(prevA[0] - ampEMA);
+    while(stepT.length && prevT - stepT[0] > 12000) stepT.shift();
+    if(stepT.length >= 8){
+      let c = (stepT.length - 1)/((stepT[stepT.length-1] - stepT[0])/1000)*60;
+      const v = shownSpeed(); if(c < 110 && v != null && v > 1.7) c *= 2;
+      if(c >= 100 && c <= 230) cadSmooth = cadSmooth == null ? c : cadSmooth + 0.3*(c - cadSmooth);
+    }
+  }
+  prevA = [x, prevA[0]]; prevT = now;
+  if(cadSmooth != null && stepT.length && now - stepT[stepT.length-1] > 4000){ cadSmooth = null; stepT = []; }   // stopped
+}
+async function enableMotion(){
+  if(!motionOn){ window.addEventListener('devicemotion', onMotion); motionOn = true; }   // listen first; events only flow once allowed
+  try{
+    // iPhone asks once, and only from a tap (this runs straight from the Start / Resume tap)
+    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') await DeviceMotionEvent.requestPermission();
+  }catch(e){}
+}
+function disableMotion(){ window.removeEventListener('devicemotion', onMotion); motionOn = false; stepT = []; cadSmooth = null; renderCad(); }
+function renderCad(){ const el = $('#curCad'); if(el) el.textContent = cadSmooth && act && act.status === 'running' ? Math.round(cadSmooth) : '--'; }
+function cadProfile(arr){   // per-second readings (0 = none) to 10 s averages
+  const v = [];
+  for(let i = 0; i + 10 <= arr.length; i += 10){ const s = arr.slice(i, i + 10).filter(x => x > 0); v.push(s.length ? Math.round(s.reduce((p, q) => p + q, 0)/s.length) : 0); }
+  return v.filter(x => x > 0).length >= 3 ? { s: 10, v } : undefined;
+}
+
 /* ---------- GPS ---------- */
 function onPos(pos){
   const c = pos.coords;
@@ -634,7 +693,14 @@ function onPos(pos){
   $('#gpsText').textContent = `GPS ±${Math.round(c.accuracy)} m`;
 
   if(!act || act.status !== 'running' || c.accuracy > MAX_ACCURACY) return;
-  const seg = act.segs[act.segs.length-1], prev = seg[seg.length-1], t = pos.timestamp || Date.now();
+  // Record the phone's own speed at every fix (not only when you moved 3 m). It comes from the satellite signal's Doppler shift,
+  // which is steadier than speed worked out from positions; standing still reads 0. Falls back to position change if the phone gives none.
+  const tt = pos.timestamp || Date.now();
+  let sv = c.speed != null && isFinite(c.speed) ? c.speed : null;
+  if(sv == null && act.lastFix){ const dtt = (tt - act.lastFix[2])/1000; if(dtt > 0 && dtt < 5) sv = hav(act.lastFix, me)/dtt; }
+  act.lastFix = [me[0], me[1], tt];
+  if(sv != null) (act.sp || (act.sp = [])).push([Math.round((tt - act.startedAt)/100), Math.min(540, Math.round(sv*36))]);
+  const seg = act.segs[act.segs.length-1], prev = seg[seg.length-1], t = tt;
   if(prev){
     const d = hav(prev, me), dt = (t - prev[3])/1000;
     if(d < MIN_STEP) return;
@@ -664,7 +730,8 @@ setInterval(() => {
   samples.push({ t: now, v: v || 0 });
   while(samples.length && now - samples[0].t > 120000) samples.shift();
   planTick(); renderSpeed(); drawSpark();
-  if(act && act.status === 'running') render();
+  if(act && act.status === 'running'){ (act.cad || (act.cad = [])).push(cadSmooth ? Math.round(cadSmooth) : 0); render(); }
+  renderCad();
 }, 1000);
 
 /* ---------- activity type ---------- */
@@ -764,6 +831,20 @@ function renderDetailChart(a){
     html += summary('Fast parts found in this run', det.reps);
     html += det.reps.slice(0, 12).map((r, i) => `<div class="lapt"><b>Rep ${i + 1}</b><span>at ${fmtTime(r.t*1000)}</span><span>${r.dur} s</span><span>${Math.round(r.dist)} m</span><span>${(r.v*3.6).toFixed(1)} km/h</span></div>`).join('');
     html += '<div style="margin-top:4px">Found from your speed (not recorded as laps), so treat the edges as approximate.</div>';
+  }
+  // cadence (steps per minute), if the motion sensor recorded it: whole run, and fast parts against the rest
+  if(a.cad && a.cad.v){
+    const cv = a.cad.v, ok = cv.filter(x => x > 0), avg = x => Math.round(x.reduce((p, q) => p + q, 0)/x.length);
+    if(ok.length){
+      let line = `Cadence: <b>${avg(ok)} spm</b> on average`;
+      const rr = planned ? regions : (det ? det.reps.map(r => [r.t, r.t + r.dur]) : []);
+      if(rr.length){
+        const inR = [], outR = [];
+        cv.forEach((c, i) => { if(c > 0) ((rr.some(([t0, t1]) => i*10 >= t0 && i*10 < t1)) ? inR : outR).push(c); });
+        if(inR.length && outR.length) line += ` · fast parts ${avg(inR)} · the rest ${avg(outR)}`;
+      }
+      html += `<div class="repsum" style="margin-top:6px">${line}</div>`;
+    }
   }
   box.innerHTML = html;
 }
