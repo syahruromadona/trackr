@@ -58,7 +58,7 @@ main{flex:1;position:relative;min-height:0}
 #map{flex:1;min-height:0;background:var(--card)}
 .sheet{background:var(--panel);border-top:1px solid var(--line);padding:12px 16px 14px}
 .types{display:flex;gap:8px;margin-bottom:10px}
-.types button{flex:1;padding:8px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.types button{flex:1;padding:8px 2px;white-space:nowrap;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
 .types button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .types.locked button{pointer-events:none;opacity:.6} .types.locked button.on{opacity:1}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 12px;margin-bottom:12px}
@@ -117,9 +117,10 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
     </div>
     <div class="sheet">
       <div class="types" id="types" role="group" aria-label="Activity type">
-        <button data-type="Run" class="on">Run</button>
-        <button data-type="Ride">Ride</button>
-        <button data-type="Walk">Walk</button>
+        <button data-type="Interval" class="on">Interval</button>
+        <button data-type="Pace">Pace</button>
+        <button data-type="Long run">Long run</button>
+        <button data-type="Walking">Walking</button>
       </div>
       <div class="controls" id="controls"></div>
     </div>
@@ -245,7 +246,7 @@ $('#followBtn').onclick =() => { setFollow(true); if(me) map.setView(me, Math.ma
 
 /* ---------- activity state ---------- */
 let act = null;            // {type, segs:[[ [lat,lon,alt,t] ]], dist, gain, refAlt, elapsed, tickAt, status, startedAt}
-let type = 'Run';
+let type = 'Interval';
 let wakeLock = null;
 
 function elapsedNow(){
@@ -498,7 +499,7 @@ $('#dDel').onclick = () => {
 $('#dGpx').onclick = () => {
   const a = store.get('trackr.acts', []).find(x => x.id === curId); if(!a) return;
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  let x = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Trackr" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>${esc(a.type)} ${esc(new Date(a.date).toISOString())}</name><type>${esc(a.type.toLowerCase())}</type>\n`;
+  let x = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Trackr" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>${esc(a.type)} ${esc(new Date(a.date).toISOString())}</name><type>${/walk/i.test(a.type) ? 'walking' : a.type === 'Ride' ? 'cycling' : 'running'}</type>\n`;
   a.segs.forEach(s => {
     if(!s.length) return;
     x += '<trkseg>\n';
