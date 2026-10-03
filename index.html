@@ -1357,8 +1357,8 @@ function renderPBs(){
   $('#pbBody').innerHTML = `<div class="vsub" style="margin-top:8px">All-time</div><table class="pbt"><tr>${hd}</tr>${all}</table>
     <div class="vsub" style="margin-top:12px">Best time and pace by year</div><div class="pbw"><table class="pbt"><tr><th>Distance</th>${PB_YEARS.map(y => `<th>${y}</th>`).join('')}</tr>${yr}</table></div>
     <div class="vsub" style="margin-top:8px">Never run 30 km or a marathon. Times are moving time from GPS and can differ from Strava's own best efforts by a few seconds.</div>
-    <div id="allData"></div>`;
-  renderAllData();
+    <div id="rawPB"></div><div id="allData"></div>`;
+  renderRawPBs(); renderAllData();
 }
 // Every run and walk in your Strava history (to 3 Oct 2026), newest first: date (Malaysia time), km, moving seconds, R = run / W = walk, X = bad GPS (left out of totals).
 const RUNLOG = `2026-10-03,5.01,2174,R
@@ -1740,6 +1740,25 @@ function renderAllData(){
   $('#allData').innerHTML = `<div class="vsub" style="margin-top:14px">All your data, by year (runs)</div><div class="pbw"><table class="pbt"><tr><th>Year</th><th>Runs</th><th>km</th><th>Time</th><th>Avg pace</th><th>Avg km</th><th>Longest</th></tr>${Object.keys(by).sort().map(y => line(y, by[y])).join('')}${line('All time', tot, true)}</table></div>
     <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Every run (${rows.length})</summary><div class="pbw" style="max-height:60vh;overflow:auto"><table class="pbt"><tr><th>Date</th><th>Type</th><th>km</th><th>Time</th><th>/km</th></tr>${log}</table></div>
     <div class="vsub" style="margin-top:6px">⚠ = GPS recorded a vehicle-speed track (14.6 km in 26 minutes), so it is left out of the totals and bests.</div></details>`;
+}
+const PB_RAW = [   // best time by year with nothing excluded; a trailing ! means the stretch contains a GPS jump (over 32 km/h in one second)
+  ['400 m', ['1:34!', '0:05!', '0:02!', '0:26!', '0:55!', '1:32', '1:41']],
+  ['1 km', ['4:28!', '0:19!', '2:45!', '1:08!', '4:30!', '5:10', '5:28!']],
+  ['5 km', ['25:34', '6:38!', '31:09', '24:00!', '28:27', '31:17', '32:27']],
+  ['10 km', ['56:23', '17:03!', '–', '1:10:11', '1:12:41', '1:07:18', '1:10:06']],
+  ['15 km', ['1:27:43!', '28:48!', '–', '–', '–', '2:00:47', '–']],
+  ['20 km', ['1:59:30!', '–', '–', '–', '–', '3:05:52!', '–']],
+  ['Half marathon', ['2:06:30!', '–', '–', '–', '–', '3:15:31!', '–']]
+];
+function renderRawPBs(){
+  const M = { '400 m':400, '1 km':1000, '5 km':5000, '10 km':10000, '15 km':15000, '20 km':20000, 'Half marathon':21097.5 };
+  const rows = PB_RAW.map(r => `<tr><td>${r[0]}</td>${r[1].map(c => {
+    if(c === '–') return '<td>–</td>';
+    const bad = c.endsWith('!'), t = bad ? c.slice(0, -1) : c;
+    return `<td${bad ? ' style="opacity:.85"' : ''}>${t}${bad ? ' ⚠' : ''}<br><span style="color:var(--muted);font-weight:400;font-size:11px">${pbPace(t, M[r[0]])}/km</span></td>`;
+  }).join('')}</tr>`).join('');
+  $('#rawPB').innerHTML = `<div class="vsub" style="margin-top:14px">Best time and pace by year, all data (nothing excluded)</div><div class="pbw"><table class="pbt"><tr><th>Distance</th>${PB_YEARS.map(y => `<th>${y}</th>`).join('')}</tr>${rows}</table></div>
+    <div class="vsub" style="margin-top:6px">Every activity and every GPS point, with no cleaning, including pauses in the clock. ⚠ marks a stretch that contains a GPS jump (over 32 km/h in one second). Often that is a tiny wobble and the time is fine (the 2020 half marathon matches the cleaned table). When the time is impossible, such as 400 m in 2 seconds in 2022 or 5 km in 6:38 in 2021, it is a GPS glitch. A half marathon that includes a long stop shows the stop in its time (2025).</div>`;
 }
 renderPBs();
 
