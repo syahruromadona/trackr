@@ -147,6 +147,16 @@ details.panel summary{cursor:pointer;font-weight:700}
     <div class="panel" id="tHead"></div>
     <div class="panel" id="tSession"></div>
     <div class="panel" id="tLast" hidden></div>
+    <div class="panel" id="tLog">
+      <h2>Log other activity</h2>
+      <div class="vsub">Gym sessions and walks you don't record with GPS still count towards your week.</div>
+      <div class="fld">
+        <label>What<select id="lgType"><option value="Strength">Gym: weights / strength</option><option value="Cardio">Gym: cardio / other</option><option value="Walking">Walk</option></select></label>
+        <label>Minutes<input id="lgMin" type="number" inputmode="numeric" value="45" min="5" max="240" step="5"></label>
+        <label>When<select id="lgDay"><option value="0">Today</option><option value="1">Yesterday</option><option value="2">2 days ago</option></select></label>
+        <button class="sbtn" id="lgAdd">Log it</button>
+      </div>
+    </div>
     <details class="panel" id="tSet">
       <summary>Coach settings</summary>
       <div class="vsub" style="margin-top:8px">Days you can train (untick any day you can't). The coach decides which of them are runs and which are recovery, and builds up gradually.</div>
@@ -668,10 +678,10 @@ function renderList(){
     const b = document.createElement('button'); b.className = 'card';
     const ride = isRide(a.type);
     b.innerHTML = `<div class="t">${a.type}${a.plan ? ' · ' + a.plan : ''}</div><div class="d">${fmtDate(a.date)}</div>
-      <div class="row">
+      <div class="row">${a.manual ? `<div><b>${Math.round(a.time/60000)}</b><span>min (logged by hand)</span></div>` : `
         <div><b>${(a.dist/1000).toFixed(2)}</b><span>km</span></div>
         <div><b>${fmtTime(a.time)}</b><span>time</span></div>
-        <div><b>${ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist)}</b><span>${ride ? 'km/h' : '/km'}</span></div>
+        <div><b>${ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist)}</b><span>${ride ? 'km/h' : '/km'}</span></div>`}
       </div>`;
     b.onclick = () => openDetail(a.id);
     el.appendChild(b);
@@ -696,7 +706,7 @@ function openDetail(id){
   const ride = isRide(a.type);
   $('#dTitle').textContent = a.type + (a.plan ? ' · ' + a.plan : '');
   $('#dDate').textContent = fmtDate(a.date);
-  $('#dStats').innerHTML =
+  $('#dStats').innerHTML = a.manual ? statHtml(Math.round(a.time/60000) + ' min', 'Logged by hand') :
     statHtml((a.dist/1000).toFixed(2) + ' km', 'Distance') + statHtml(fmtTime(a.time), 'Time') +
     statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' /km', ride ? 'Avg speed' : 'Avg pace') +
     statHtml(Math.round(a.gain) + ' m', 'Elev gain');
@@ -712,6 +722,7 @@ $('#dDel').onclick = () => {
 };
 $('#dGpx').onclick = () => {
   const a = store.get('trackr.acts', []).find(x => x.id === curId); if(!a) return;
+  if(!a.segs.some(s => s.length)){ toast('Nothing to export: this one has no GPS route.'); return; }
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
   let x = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Trackr" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>${esc(a.type)} ${esc(new Date(a.date).toISOString())}</name><type>${/walk/i.test(a.type) ? 'walking' : a.type === 'Ride' ? 'cycling' : 'running'}</type>\n`;
   a.segs.forEach(s => {
@@ -977,7 +988,7 @@ const band = (lo, hi) => `${kmh(lo)}–${kmh(hi)} km/h`;
 // days = days you are available to train (default: every day); maxRuns caps the weekly runs the coach will ramp up to
 const coachCfg = () => Object.assign({ days: [0, 1, 2, 3, 4, 5, 6], maxLong: 60, maxRuns: 5 }, store.get('trackr.coach', {}));
 const isHard = a => a.type === 'Interval' || !!(a.coach && (a.coach.kind === 'interval' || a.coach.kind === 'pace'));
-const runsOnly = () => store.get('trackr.acts', []).filter(a => !/walk|strength/i.test(a.type)).sort((a, b) => b.date - a.date);
+const runsOnly = () => store.get('trackr.acts', []).filter(a => !/walk|strength|cardio/i.test(a.type)).sort((a, b) => b.date - a.date);
 // Runs per week ramp up slowly from what you actually do (about one extra run a week as the base grows), never above maxRuns.
 const runBudget = (acts, cfg) => clamp(Math.round(acts.filter(a => daysAgo(a.date) <= 55).length/8) + 1, 3, cfg.maxRuns);
 // Choose today's kind from what the last 6 days already contain, instead of fixed weekdays: one interval session, one long easy run,
@@ -1108,7 +1119,7 @@ function coachBrief(){
   else if(b.skipped){ b.mode = 'rest'; b.why.push('You chose to rest today. Adaptation happens during recovery, so that is a good call.'); }
   else if(!ref){ kind = 'test'; b.why.push('I have no VO2max for you yet. A 12-minute all-out test gives me a baseline to set every target from. Run as far as you can at a steady hard effort.'); }
   else if(!cfg.days.includes(dow)){ b.mode = 'rest'; b.why.push('You marked today as a day off.'); }
-  else if(since >= 14 && acts.length){ kind = 'comeback'; b.why.push(`It has been ${since} days since your last run, so today is a gentle return with no hard efforts. Fitness comes back faster than it feels like it will.`); }
+  else if(since >= 14 && acts.length){ kind = 'comeback'; b.why.push(`It has been ${since} days since your last run. Even if you have stayed active with the gym and walks (which helps), calves and tendons adapt to running slowly, so today is a gentle return with no hard efforts.`); }
   else if(pk.rest){ b.mode = 'rest'; b.why.push(pk.rest); }
   else {
     kind = pk.kind;
@@ -1197,7 +1208,7 @@ $('#todayView').onclick = e => {
   else if(what === 'unrest'){ store.del('trackr.skip'); renderToday(); }
   else if(what === 'strength'){
     const list = store.get('trackr.acts', []), t = Date.now();
-    list.unshift({ id: 's' + t, type: 'Strength', date: t, dist: 0, time: 20*60000, gain: 0, segs: [], laps: [] });
+    list.unshift({ id: 's' + t, type: 'Strength', manual: true, date: t, dist: 0, time: 20*60000, gain: 0, segs: [], laps: [] });
     store.set('trackr.acts', list); buzz(40); toast('Strength session logged'); renderToday(); renderList();
   }
   else if(what === 'walk'){
@@ -1207,7 +1218,16 @@ $('#todayView').onclick = e => {
     showTab('rec'); render();
   }
 };
-$('#maxRuns').onchange = e => { const cfg = coachCfg(); cfg.maxRuns = clamp(Math.round(+e.target.value) || 5, 3, 6); store.set('trackr.coach', cfg); renderToday(); };
+$('#lgAdd').onclick = () => {
+  const min = Math.round(+$('#lgMin').value), back = +$('#lgDay').value, kind = $('#lgType').value;
+  if(!(min >= 5 && min <= 240)){ toast('Enter between 5 and 240 minutes.'); return; }
+  const t = back ? startOfDay(Date.now()) - back*DAY + 12*3600000 : Date.now();   // past days are stamped at midday
+  const list = store.get('trackr.acts', []);
+  list.push({ id: 'm' + Date.now(), type: kind, manual: true, date: t, dist: 0, time: min*60000, gain: 0, segs: [], laps: [] });
+  store.set('trackr.acts', list.sort((a, b) => b.date - a.date)); buzz(40);
+  toast(`${kind === 'Walking' ? 'Walk' : kind === 'Cardio' ? 'Cardio' : 'Gym'} logged: ${min} min`); renderToday(); renderList();
+};
+$('#maxRuns').onchange =e => { const cfg = coachCfg(); cfg.maxRuns = clamp(Math.round(+e.target.value) || 5, 3, 6); store.set('trackr.coach', cfg); renderToday(); };
 const saveProfile = () => { store.set('trackr.profile', { birth: $('#pBirth').value, sex: $('#pSex').value }); renderToday(); $('#tSet').open = true; };
 $('#pBirth').onchange = saveProfile; $('#pSex').onchange = saveProfile;
 $('#maxLong').onchange =e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
