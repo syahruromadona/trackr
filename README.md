@@ -18,3 +18,14 @@ Keep the screen on while recording — browsers pause GPS when the page is backg
 - Weekly distance
 - Back up all / Restore includes activities and VO2max readings
 
+
+## Daily coach (Today tab)
+
+The app opens on **Today**: a briefing that reads your history and tells you what to do.
+
+- Weekly shape from your run days (interval / threshold / easy / long), set in *Coach settings*
+- Guards: no hard session the day after a hard one, easy when the last 7 days are far above your 4-week average, gentle comeback after 14+ days off
+- Adaptive levels: step up only after a session completed on target, repeat otherwise, drop a level after a 3-week gap
+- One tap starts the session on the Record screen with timed phases, beeps and speed targets; results (reps done, average vs target) feed the next briefing
+- 12-minute Cooper test logs a VO2max reading when no baseline exists
+- Shows whether you are at your usual running spot

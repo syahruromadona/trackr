@@ -94,7 +94,20 @@ input,select{-webkit-user-select:text;user-select:text}
 .plan .pr{text-align:right;font-size:14px;line-height:1.35}
 .planchip{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);padding:6px 8px 6px 16px;font-size:14px}
 .planchip button{border:0;background:none;color:var(--muted);font:inherit;font-size:22px;cursor:pointer;padding:2px 10px}
-#trainView{overflow:auto;padding:12px 16px 20px;gap:12px}
+#trainView,#todayView{overflow:auto;padding:12px 16px 20px;gap:12px}
+.plan.easy{background:#0f766e}.plan.test{background:var(--accent)}
+.ttl{font-size:22px;font-weight:800;line-height:1.2}
+.pill{display:inline-block;background:var(--bg);border-radius:999px;padding:4px 11px;font-size:13px;margin:6px 6px 0 0;font-variant-numeric:tabular-nums}
+.spot{font-size:13px;color:var(--muted);margin-top:6px}
+.prow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
+.prow:last-of-type{border:0}.prow b{white-space:nowrap}.prow span{text-align:right;color:var(--muted)}
+.why{margin:10px 0 12px;padding-left:18px;color:var(--muted);font-size:14px}.why li{margin:4px 0}
+.alt{display:flex;gap:8px;margin-top:8px}
+.alt button{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:11px 8px;font:inherit;font-size:14px;cursor:pointer}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chips button{width:46px;padding:9px 0;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.chips button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+details.panel summary{cursor:pointer;font-weight:700}
 .panel{background:var(--card);border-radius:14px;padding:14px;flex:none}
 .panel h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
 .vbig{font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
@@ -130,7 +143,19 @@ input,select{-webkit-user-select:text;user-select:text}
 </header>
 
 <main>
-  <section id="recView" class="view on">
+  <section id="todayView" class="view on">
+    <div class="panel" id="tHead"></div>
+    <div class="panel" id="tSession"></div>
+    <div class="panel" id="tLast" hidden></div>
+    <details class="panel" id="tSet">
+      <summary>Coach settings</summary>
+      <div class="vsub" style="margin-top:8px">Which days do you run? Fewer days means each session matters more; rest days are part of the plan.</div>
+      <div class="chips" id="dayChips"></div>
+      <div class="fld"><label>Longest run you'll do (min)<input id="maxLong" type="number" inputmode="numeric" min="30" max="240" step="5"></label></div>
+    </details>
+  </section>
+
+  <section id="recView" class="view">
     <div class="hero">
       <div class="hl">Current speed</div>
       <div class="hv" id="curBox"><span id="curSpd">--</span><small>km/h</small></div>
@@ -225,6 +250,7 @@ input,select{-webkit-user-select:text;user-select:text}
       <div class="t" id="dTitle" style="font-weight:700;font-size:18px"></div>
       <div class="d" id="dDate" style="color:var(--muted);font-size:13px;margin-bottom:10px"></div>
       <div class="stats" id="dStats"></div>
+      <div class="vsub" id="dCoach" style="margin:0 0 10px"></div>
       <div id="dLaps"></div>
       <div class="controls">
         <button class="btn" id="dBack">Back</button>
@@ -236,7 +262,8 @@ input,select{-webkit-user-select:text;user-select:text}
 </main>
 
 <nav>
-  <button id="tabRec" class="on">Record</button>
+  <button id="tabToday" class="on">Today</button>
+  <button id="tabRec">Record</button>
   <button id="tabTrain">Train</button>
   <button id="tabAct">Activities</button>
 </nav>
@@ -384,7 +411,7 @@ function beep(freq, ms){
   }catch(e){}
 }
 function cue(kind){
-  if(kind === 'work'){ beep(988, 180); setTimeout(() => beep(988, 180), 260); buzz([200, 100, 200]); }
+  if(kind === 'work' || kind === 'test'){ beep(988, 180); setTimeout(() => beep(988, 180), 260); buzz([200, 100, 200]); }
   else if(kind === 'end'){ beep(784, 200); setTimeout(() => beep(988, 200), 260); setTimeout(() => beep(1175, 350), 520); buzz([300, 100, 300, 100, 300]); }
   else { beep(523, 350); buzz(350); }
 }
@@ -392,10 +419,22 @@ function curPhase(){ return act && act.plan && !act.plan.done ? act.plan.phases[
 function advancePhase(skipped){
   const p = act.plan, ph = p.phases[p.idx], ms = elapsedNow();
   const bound = skipped ? ms : p.t0 + ph.dur*1000;       // natural ends land exactly on the boundary, so phases never drift
-  act.laps.push({ time: Math.max(0, bound - act.lapT0), dist: act.dist - act.lapD0, label: ph.label, kind: ph.kind });
+  act.laps.push({ time: Math.max(0, bound - act.lapT0), dist: act.dist - act.lapD0, label: ph.label, kind: ph.kind, dur: ph.dur*1000 });
   act.lapT0 = bound; act.lapD0 = act.dist; p.t0 = bound; p.idx++; p.lastTick = -1;
   if(p.idx >= p.phases.length){ p.done = true; cue('end'); } else cue(p.phases[p.idx].kind);
   saveDraft(); render();
+}
+// Summarise how a structured session went, so the coach can adapt the next one.
+const MEASURED = new Set(['work', 'easy', 'test']);
+function coachResult(laps){
+  const p = act.plan; if(!p) return undefined;
+  const total = p.phases.filter(x => MEASURED.has(x.kind)).length;
+  const good = laps.filter(l => MEASURED.has(l.kind) && l.dur && l.time >= 0.8*l.dur);
+  const t = good.reduce((s, l) => s + l.time, 0), d = good.reduce((s, l) => s + l.dist, 0);
+  const tgt = p.phases.find(x => MEASURED.has(x.kind) && x.lo);
+  const full = laps.filter(l => l.kind === 'test' && l.dur && l.time >= 0.95*l.dur);
+  return { kind: p.ckind, level: p.level, done: good.length, total, avg: t ? d/(t/1000) : 0, lo: tgt ? tgt.lo : undefined, hi: tgt ? tgt.hi : undefined,
+           testDist: full.length ? full[0].dist : undefined };
 }
 function planTick(){
   if(!act || act.status !== 'running' || !act.plan) return;
@@ -410,7 +449,7 @@ function planTick(){
 function renderPlan(){
   const chip = $('#planChip'), bar = $('#planBar');
   chip.hidden = !(pendingPlan && !act);
-  if(!chip.hidden) $('#planChipTxt').textContent = `Plan: ${pendingPlan.name} — press Start to begin the warm-up`;
+  if(!chip.hidden) $('#planChipTxt').textContent = `Plan: ${pendingPlan.name} — press Start when you're ready`;
   const p = act && act.plan;
   bar.hidden = !p;
   if(!p) return;
@@ -448,8 +487,8 @@ function start(){
   if(!me) toast('No GPS fix yet — your route starts once it locks on.');
   act = { type, segs:[[]], dist:0, gain:0, refAlt:null, elapsed:0, tickAt:Date.now(), status:'running', startedAt:Date.now(), laps:[], lapT0:0, lapD0:0 };
   if(pendingPlan){
-    act.type = 'Interval';
-    act.plan = { name: pendingPlan.name, phases: pendingPlan.phases, idx:0, t0:0, done:false, lastTick:-1 };
+    act.type = pendingPlan.type || 'Interval';
+    act.plan = { name: pendingPlan.name, phases: pendingPlan.phases, ckind: pendingPlan.ckind, level: pendingPlan.level, idx:0, t0:0, done:false, lastTick:-1 };
     pendingPlan = null; cue('rest');   // the first beep also unlocks audio, which browsers only allow after a tap
   }
   buzz(60); lockScreen(); saveDraft(); render();
@@ -475,14 +514,22 @@ function finish(){
   const laps = act.laps.slice();
   if(laps.length && act.elapsed - act.lapT0 > 2000){
     const ph = curPhase();
-    laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0, label: ph ? ph.label : `Lap ${laps.length + 1}`, kind: ph ? ph.kind : undefined });
+    laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0, label: ph ? ph.label : `Lap ${laps.length + 1}`, kind: ph ? ph.kind : undefined, dur: ph ? ph.dur*1000 : undefined });
   }
-  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps });
+  const coach = coachResult(laps);
+  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps });
+  if(coach && coach.kind === 'test' && coach.testDist){
+    const v = (coach.testDist - 504.9)/44.73;   // Cooper 12-minute formula
+    if(v >= 10 && v <= 95){
+      const r = store.get('trackr.vo2', []); r.push({ id: 'v' + Date.now(), date: Date.now(), value: Math.round(v*10)/10, source: 'Cooper test' });
+      store.set('trackr.vo2', r); store.set('trackr.ref', 'log'); toast(`Cooper test: ${Math.round(coach.testDist)} m → VO2max ${v.toFixed(1)}`);
+    }
+  }
   store.set('trackr.acts', list);
   act = null; store.del('trackr.draft');
   protectStorage();   // retry now that the user has engaged with the app
   render(); renderList(); toast('Activity saved');
-  showTab('act');
+  showTab('today');   // the briefing shows the recap and what is next
 }
 
 /* ---------- current speed ---------- */
@@ -545,7 +592,7 @@ function onPos(pos){
   const c = pos.coords;
   me = [c.latitude, c.longitude];
   updateSpeed(c, pos.timestamp || Date.now());
-  renderSpeed();
+  renderSpeed(); renderSpot();
   if(!meDot){
     meDot = L.circleMarker(me, {radius:8, color:'#fff', weight:3, fillColor:'#2563eb', fillOpacity:1}).addTo(map);
     meAcc = L.circle(me, {radius:c.accuracy, color:'#2563eb', weight:1, fillOpacity:.1}).addTo(map);
@@ -644,6 +691,7 @@ function openDetail(id){
     statHtml((a.dist/1000).toFixed(2) + ' km', 'Distance') + statHtml(fmtTime(a.time), 'Time') +
     statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' /km', ride ? 'Avg speed' : 'Avg pace') +
     statHtml(Math.round(a.gain) + ' m', 'Elev gain');
+  $('#dCoach').textContent = coachNote(a.coach);
   $('#dLaps').innerHTML = (a.laps || []).map((l, i) =>
     `<div class="lapt ${l.kind === 'work' ? 'work' : ''}"><b>${l.label || 'Lap ' + (i+1)}</b><span>${fmtTime(l.time)}</span><span>${(l.dist/1000).toFixed(2)} km</span><span>${fmtSpeed(l.time, l.dist)} km/h</span><span>${fmtPace(l.time, l.dist)}/km</span></div>`).join('');
 }
@@ -754,17 +802,20 @@ function buildPlan(p, vv){
     if(i < p.reps) ph.push({ kind:'rest', dur:p.rest, label:`Rest ${i}/${p.reps}` });
   }
   ph.push({ kind:'cool', dur:300, label:'Cool-down' });
-  return { name: p.name, phases: ph };
+  const li = LADDER.indexOf(p.name);
+  return { name: p.name, type:'Interval', ckind:'interval', level: li < 0 ? undefined : li, phases: ph };
 }
-function startPlan(p){
+function launch(plan){   // hand a plan to the Record screen; the user presses Start when ready
   if(act){ toast('Finish the current activity first.'); return; }
-  const ref = reference(vo2Estimates());
-  if(!ref){ toast('Log a VO2max reading first (or record a few runs).'); return; }
-  pendingPlan = buildPlan(p, velAtVo2(ref.v));
-  type = 'Interval';
+  pendingPlan = plan; type = plan.type || 'Interval';
   document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
   showTab('rec'); render();
-  toast(`${p.name} ready — press Start`);
+  toast(`${plan.name} ready — press Start`);
+}
+function startPlan(p){
+  const ref = reference(vo2Estimates());
+  if(!ref){ toast('Log a VO2max reading first, or run the 12-minute test.'); return; }
+  launch(buildPlan(p, velAtVo2(ref.v)));
 }
 function fmtMonthYear(t){ return new Date(t).toLocaleDateString(undefined, { month:'short', year:'numeric' }); }
 function renderTrain(){
@@ -794,6 +845,7 @@ function renderTrain(){
     z.innerHTML = ZONES.map(([n, lo, hi]) => { const [a, b] = rng(lo, hi); return `<div class="zone"><span>${n}<small>${Math.round(lo*100)}–${Math.round(hi*100)}% of VO2max speed</small></span><span class="r">${a}<small style="display:block">${b}</small></span></div>`; }).join('');
     s.innerHTML = PRESETS.map((p, i) => { const [a] = rng(p.lo, p.hi); return `<div class="sess"><span><b>${p.name}</b><small>${p.reps} × ${fmtDur(p.work)} @ ${a} · rest ${fmtDur(p.rest)}</small></span><button class="btn primary" data-p="${i}">Start</button></div>`; }).join('');
   }
+  s.innerHTML += `<div class="sess"><span><b>12-min Cooper test</b><small>Steady hard effort. Logs a VO2max reading when done</small></span><button class="btn" data-test="1">Start</button></div>`;
   renderWeekly();
 }
 function drawVChart(months, logs){
@@ -827,7 +879,10 @@ function renderWeekly(){
   const max = Math.max(10, ...weeks.map(w => w.km));
   $('#wk').innerHTML = weeks.map(w => `<div><span>${w.km ? w.km.toFixed(0) : ''}</span><i style="height:${Math.max(2, w.km/max*70)}px"></i><span>${new Date(w.a).getDate()}/${new Date(w.a).getMonth() + 1}</span></div>`).join('');
 }
-$('#sessions').onclick = e => { const b = e.target.closest('button[data-p]'); if(b) startPlan(PRESETS[+b.dataset.p]); };
+$('#sessions').onclick = e => {
+  if(e.target.closest('button[data-test]')){ launch(makeSession('test', { vv: 0, acts: [], cfg: coachCfg() })); return; }
+  const b = e.target.closest('button[data-p]'); if(b) startPlan(PRESETS[+b.dataset.p]);
+};
 $('#cGo').onclick = () => {
   const n = id => parseFloat($(id).value);
   const reps = Math.round(n('#cReps')), work = n('#cWork')*60, rest = n('#cRest')*60, lo = n('#cLo')/100, hi = n('#cHi')/100;
@@ -847,6 +902,224 @@ $('#vList').onclick = e => {
   const b = e.target.closest('button[data-del]'); if(!b) return;
   store.set('trackr.vo2', store.get('trackr.vo2', []).filter(r => r.id !== b.dataset.del)); renderTrain();
 };
+
+/* ---------- coach: the daily briefing ---------- */
+// Weekly shape by number of run days. Hard sessions are never stacked; the guards below enforce that at runtime.
+const TEMPLATES = {
+  1: ['long'], 2: ['interval', 'long'], 3: ['interval', 'pace', 'long'],
+  4: ['interval', 'easy', 'pace', 'long'], 5: ['interval', 'easy', 'pace', 'easy', 'long']
+};
+const KIND_NAME = { interval:'VO2max intervals', pace:'Threshold run', long:'Long easy run', easy:'Easy jog', test:'12-minute test', comeback:'Comeback jog' };
+const LADDER = ['8 × 1 min', '30/30 × 16', '6 × 2 min', '5 × 3 min', 'Norwegian 4×4'];   // easiest to hardest
+const THRESH = [ { reps:1, work:900, rest:0 }, { reps:2, work:480, rest:120 }, { reps:2, work:600, rest:120 }, { reps:3, work:480, rest:120 }, { reps:2, work:900, rest:180 } ];
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const startOfDay = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const daysAgo = t => Math.round((startOfDay(Date.now()) - startOfDay(t))/DAY);
+const dkey = t => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+const median = a => { if(!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m-1] + s[m])/2; };
+const round5 = m => Math.round(m/5)*5;
+const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+const kmh = v => (v*3.6).toFixed(1);
+const band = (lo, hi) => `${kmh(lo)}–${kmh(hi)} km/h`;
+const coachCfg = () => Object.assign({ days: [2, 4, 6], maxLong: 60 }, store.get('trackr.coach', {}));
+const isHard = a => a.type === 'Interval' || !!(a.coach && (a.coach.kind === 'interval' || a.coach.kind === 'pace'));
+const runsOnly = () => store.get('trackr.acts', []).filter(a => !/walk/i.test(a.type)).sort((a, b) => b.date - a.date);
+function slotFor(dow, days){
+  const ds = [1, 2, 3, 4, 5, 6, 0].filter(d => days.includes(d)), i = ds.indexOf(dow);
+  return i < 0 ? null : (TEMPLATES[Math.min(ds.length, 5)] || ['easy'])[i];
+}
+// Move up a level only if the last session of this kind was completed on target; repeat otherwise; step back after a long gap.
+function nextLevel(acts, kind, max){
+  const last = acts.find(a => a.coach && a.coach.kind === kind && a.coach.level != null);
+  if(!last) return { level: 0, note: 'this is your first one, so we start at the easiest level' };
+  const c = last.coach, ok = c.done >= Math.ceil(c.total*0.75) && (!c.lo || c.avg >= c.lo*0.97);
+  let level = Math.min(max, c.level + (ok ? 1 : 0));
+  let note = ok ? `you hit your targets last time${c.lo ? ` (${kmh(c.avg)} km/h vs ${band(c.lo, c.hi)})` : ''}, so we step up`
+                : `last time you completed ${c.done} of ${c.total}${c.lo ? ` at ${kmh(c.avg)} km/h (target ${band(c.lo, c.hi)})` : ''}, so we repeat that level`;
+  const gap = daysAgo(last.date);
+  if(gap > 21){ level = Math.max(0, level - 1); note = `it's been ${gap} days since the last one, so we drop a level`; }
+  return { level, note };
+}
+function easyPlan(dur, name, ckind, vv){
+  return { name, type:'Pace', ckind, phases:[{ kind:'easy', dur: dur*60, label: name, lo: vv*.65, hi: vv*.78 }] };
+}
+function makeSession(kind, c){
+  const { vv, acts, cfg } = c;
+  const medMin = median(acts.slice(0, 8).map(a => a.time/60000)) || 30;
+  const longest28 = Math.max(0, ...acts.filter(a => daysAgo(a.date) <= 28).map(a => a.time/60000));
+  let plan, extra = {};
+  if(kind === 'test'){
+    plan = { name:'12-minute test', type:'Pace', ckind:'test', phases:[
+      { kind:'warm', dur:480, label:'Warm-up' }, { kind:'test', dur:720, label:'Cooper test' }, { kind:'cool', dur:300, label:'Cool-down' } ] };
+  } else if(kind === 'interval'){
+    const nl = nextLevel(acts, 'interval', LADDER.length - 1), p = PRESETS.find(x => x.name === LADDER[nl.level]);
+    plan = buildPlan(p, vv); plan.level = nl.level;
+    extra = { levelTxt: `Level ${nl.level + 1} of ${LADDER.length}`, note: nl.note };
+  } else if(kind === 'pace'){
+    const nl = nextLevel(acts, 'pace', THRESH.length - 1), t = THRESH[nl.level], ph = [{ kind:'warm', dur:600, label:'Warm-up' }];
+    for(let i = 1; i <= t.reps; i++){
+      ph.push({ kind:'work', dur:t.work, label: t.reps > 1 ? `Block ${i}/${t.reps}` : 'Threshold block', lo: vv*.88, hi: vv*.93 });
+      if(i < t.reps) ph.push({ kind:'rest', dur:t.rest, label:`Jog ${i}/${t.reps}` });
+    }
+    ph.push({ kind:'cool', dur:300, label:'Cool-down' });
+    plan = { name: t.reps > 1 ? `Threshold ${t.reps} × ${fmtDur(t.work)}` : `Threshold ${fmtDur(t.work)}`, type:'Pace', ckind:'pace', level: nl.level, phases: ph };
+    extra = { levelTxt: `Level ${nl.level + 1} of ${THRESH.length}`, note: nl.note };
+  } else if(kind === 'long'){
+    plan = easyPlan(round5(Math.min(cfg.maxLong, Math.max(30, longest28*1.15))), 'Long easy run', 'long', vv);
+  } else if(kind === 'comeback'){
+    plan = easyPlan(round5(clamp(medMin*.65, 15, 30)), 'Comeback jog', 'easy', vv);
+  } else {
+    plan = easyPlan(round5(clamp(medMin*.85, 20, 40)), 'Easy jog', 'easy', vv);
+  }
+  plan.total = plan.phases.reduce((s, p) => s + p.dur, 0);
+  return Object.assign(plan, { title: KIND_NAME[kind] + (kind === 'long' || kind === 'easy' || kind === 'comeback' ? ` — ${Math.round(plan.total/60)} min` : plan.name && kind !== 'test' ? ` — ${plan.name.replace(/^Threshold /, '')}` : ''), kind }, extra);
+}
+function describePlan(plan){
+  const ph = plan.phases, rows = [], pc = x => fmtPaceSec(1000/x);
+  for(let i = 0; i < ph.length; ){
+    const p = ph[i];
+    if(p.kind === 'work'){
+      let j = i, reps = 0; while(j < ph.length && (ph[j].kind === 'work' || ph[j].kind === 'rest')){ if(ph[j].kind === 'work') reps++; j++; }
+      const rest = ph.slice(i, j).find(x => x.kind === 'rest');
+      rows.push([`${reps} × ${fmtDur(p.dur)}`, `${band(p.lo, p.hi)} · ${pc(p.lo)}–${pc(p.hi)} /km${rest ? `<br>rest ${fmtDur(rest.dur)} jog` : ''}`]);
+      i = j; continue;
+    }
+    if(p.kind === 'warm') rows.push(['Warm-up', `${fmtDur(p.dur)} easy walk/jog`]);
+    else if(p.kind === 'cool') rows.push(['Cool-down', `${fmtDur(p.dur)} easy walk/jog`]);
+    else if(p.kind === 'easy') rows.push([fmtDur(p.dur), `${band(p.lo, p.hi)} · ${pc(p.lo)}–${pc(p.hi)} /km`]);
+    else if(p.kind === 'test') rows.push([fmtDur(p.dur), 'steady hard effort: cover as much distance as you can']);
+    i++;
+  }
+  return rows.map(r => `<div class="prow"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
+}
+function coachNote(c){
+  if(!c || !c.total) return '';
+  const unit = c.kind === 'interval' || c.kind === 'pace' ? 'reps' : 'block';
+  let s = `Coach: ${c.done}/${c.total} ${unit}${c.total > 1 && unit === 'block' ? 's' : ''} completed`;
+  if(c.lo && c.done){
+    const v = c.avg < c.lo*.97 ? 'below target' : c.avg > c.hi*1.03 ? (c.kind === 'easy' || c.kind === 'long' ? 'too fast, ease off next time' : 'above target') : 'on target';
+    s += ` · avg ${kmh(c.avg)} km/h vs ${band(c.lo, c.hi)} → ${v}`;
+  }
+  if(c.testDist) s += ` · ${Math.round(c.testDist)} m → VO2max ${((c.testDist - 504.9)/44.73).toFixed(1)}`;
+  return s;
+}
+function usualSpot(){
+  const pts = runsOnly().filter(a => daysAgo(a.date) <= 180 && a.segs[0] && a.segs[0][0]).map(a => a.segs[0][0]);
+  return pts.length < 3 ? null : [median(pts.map(p => p[0])), median(pts.map(p => p[1]))];
+}
+function renderSpot(){
+  const el = $('#spotTxt'); if(!el) return;
+  const sp = usualSpot(); if(!sp){ el.textContent = ''; return; }
+  if(!me){ el.textContent = '● Finding your location…'; return; }
+  const d = hav(sp, me);
+  el.textContent = d < 500 ? '● You\'re at your usual running spot' : `● ${d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'} from your usual running spot`;
+}
+let brief = null;
+function coachBrief(){
+  const est = vo2Estimates(), ref = reference(est), cfg = coachCfg(), acts = runsOnly(), dow = new Date().getDay();
+  const last = acts[0], since = last ? daysAgo(last.date) : Infinity;
+  const km7 = acts.filter(a => daysAgo(a.date) <= 6).reduce((s, a) => s + a.dist, 0)/1000;
+  const km28 = acts.filter(a => daysAgo(a.date) <= 27).reduce((s, a) => s + a.dist, 0)/1000/4;
+  const lastHard = acts.find(isHard), hardGap = lastHard ? daysAgo(lastHard.date) : Infinity;
+  const hard6 = acts.filter(a => isHard(a) && daysAgo(a.date) <= 6).length;
+  const b = { est, ref, cfg, acts, last, since, km7, km28, mode:'run', why:[], vv: ref ? velAtVo2(ref.v) : null };
+  const ctx = { vv: b.vv, acts, cfg };
+  b.doneToday = acts.find(a => daysAgo(a.date) === 0);
+  b.skipped = store.get('trackr.skip', '') === dkey(Date.now());
+  const slot = slotFor(dow, cfg.days);
+  let kind = null;
+  if(b.doneToday){ b.mode = 'done'; }
+  else if(b.skipped){ b.mode = 'rest'; b.why.push('You chose to rest today. Adaptation happens during recovery, so that is a good call.'); }
+  else if(!ref){ kind = 'test'; b.why.push('I have no VO2max for you yet. A 12-minute all-out test gives me a baseline to set every target from. Run as far as you can at a steady hard effort.'); }
+  else if(since >= 14 && acts.length){ kind = 'comeback'; b.why.push(`It has been ${since} days since your last run, so today is a gentle return with no hard efforts. Fitness comes back faster than it feels like it will.`); }
+  else if(!slot){ b.mode = 'rest'; b.why.push(`Today is a rest day in your plan (${cfg.days.length} run days a week). Rest is when the training from your hard days actually sinks in.`); }
+  else {
+    kind = slot;
+    if(slot === 'interval' || slot === 'pace'){
+      if(hardGap <= 1){ kind = 'easy'; b.why.push(`You did a hard session ${hardGap === 0 ? 'today' : 'yesterday'}, so hard work today would just dig a hole. Easy jog instead.`); }
+      else if(hard6 >= 2){ kind = 'easy'; b.why.push('You have already done two hard sessions in the last 6 days. Easy today.'); }
+      else if(since >= 8){ kind = 'easy'; b.why.push(isFinite(since) ? `First run after ${since} days off. Keep it easy and save the hard work for next time.` : 'No runs on record yet, so your first session is an easy one while I learn your pace.'); }
+      else if(km28 > 0 && b.km7 > 1.5*Math.max(km28, 8)){ kind = 'easy'; b.why.push(`Your last 7 days (${b.km7.toFixed(0)} km) are well above your 4-week average, so I am holding back to keep you healthy.`); }
+    }
+  }
+  if(b.mode === 'run' && kind){
+    b.session = kind === 'test' ? makeSession('test', { vv: 0, acts, cfg }) : makeSession(kind, ctx);
+    b.kind = kind;
+    if(b.session.levelTxt) b.why.unshift(`${b.session.levelTxt}: ${b.session.note}.`);
+    if(ref) b.why.push(`Targets use your speed at VO2max of ${kmh(b.vv)} km/h (from ${ref.label}).`);
+    if(ref && (kind === 'easy' || kind === 'long' || kind === 'comeback')){
+      const usual = median(acts.slice(0, 8).map(a => a.dist/(a.time/1000)));
+      if(usual && usual > b.vv*.78*1.03) b.why.push(`Your usual runs average ${kmh(usual)} km/h, which is faster than easy. Slow down on purpose. Easy days make the hard days possible.`);
+    }
+  }
+  if(ref && b.mode !== 'done'){ b.alt = makeSession(kind === 'comeback' ? 'comeback' : 'easy', ctx); }
+  // what is next?
+  for(let i = 1; i <= 7; i++){
+    const d = (dow + i) % 7, s = slotFor(d, cfg.days);
+    if(s){ b.next = `${i === 1 ? 'Tomorrow' : DOW[d]}: ${KIND_NAME[s]}`; break; }
+  }
+  return b;
+}
+function renderToday(){
+  brief = coachBrief();
+  const b = brief, now = new Date(), hr = now.getHours();
+  const wkStart = startOfDay(Date.now()) - ((now.getDay() + 6) % 7)*DAY;
+  const wk = b.acts.filter(a => a.date >= wkStart);
+  $('#tHead').innerHTML =
+    `<div class="vsub">${now.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' })}</div>
+     <div class="ttl" style="font-size:28px">Good ${hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening'}</div>
+     <div class="spot" id="spotTxt"></div>
+     <span class="pill">VO2max ${b.ref ? b.ref.v.toFixed(1) : '--'}</span><span class="pill">This week ${(wk.reduce((s, a) => s + a.dist, 0)/1000).toFixed(1)} km · ${wk.length} run${wk.length === 1 ? '' : 's'}</span><span class="pill">${b.last ? (b.since === 0 ? 'Ran today' : `Last run ${b.since} day${b.since === 1 ? '' : 's'} ago`) : 'No runs yet'}</span>`;
+  renderSpot();
+  const S = $('#tSession');
+  const why = b.why.length ? `<ul class="why">${b.why.map(w => `<li>${w}</li>`).join('')}</ul>` : '';
+  const next = b.next ? `<div class="vsub" style="margin-top:10px">Next up — ${b.next}</div>` : '';
+  if(b.mode === 'run'){
+    const s = b.session;
+    S.innerHTML = `<h2>Today's session</h2><div class="ttl">${s.title}</div><div class="vsub">about ${Math.round(s.total/60)} min${s.levelTxt ? ' · ' + s.levelTxt : ''}</div>
+      <div style="margin-top:8px">${describePlan(s)}</div>${why}
+      <div class="controls"><button class="btn primary" data-do="start">Start session</button></div>
+      <div class="alt">${b.alt && b.kind !== 'easy' && b.kind !== 'comeback' ? '<button data-do="easier">Make it easier</button>' : ''}<button data-do="rest">Rest today</button></div>${next}`;
+  } else if(b.mode === 'rest'){
+    S.innerHTML = `<h2>Today</h2><div class="ttl">Rest day</div>${why}
+      <div class="controls"><button class="btn" data-do="walk">Record a recovery walk</button></div>
+      <div class="alt">${b.alt ? '<button data-do="anyway">Easy jog anyway</button>' : ''}${b.skipped ? '<button data-do="unrest">Actually, give me a session</button>' : ''}</div>${next}`;
+  } else {
+    const a = b.doneToday;
+    S.innerHTML = `<h2>Today</h2><div class="ttl">Done for today ✓</div>
+      <div class="vsub" style="margin-top:6px">${(a.dist/1000).toFixed(2)} km · ${fmtTime(a.time)} · ${fmtPace(a.time, a.dist)} /km${a.plan ? ' · ' + a.plan : ''}</div>
+      ${a.coach ? `<div class="vsub" style="margin-top:6px">${coachNote(a.coach)}</div>` : ''}
+      <div class="vsub" style="margin-top:8px">Good work. Eat, drink, and stretch. Recovery starts now.</div>${next}`;
+  }
+  const L = $('#tLast'), la = b.last;
+  L.hidden = !la || b.mode === 'done';
+  if(la && !L.hidden) L.innerHTML = `<h2>Last run</h2><b>${la.type}${la.plan ? ' · ' + la.plan : ''}</b> · ${fmtDate(la.date)}<div class="vsub">${(la.dist/1000).toFixed(2)} km · ${fmtTime(la.time)} · ${fmtPace(la.time, la.dist)} /km</div>${la.coach ? `<div class="vsub" style="margin-top:4px">${coachNote(la.coach)}</div>` : ''}`;
+  $('#dayChips').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `<button data-day="${d}" class="${b.cfg.days.includes(d) ? 'on' : ''}">${DOW[d]}</button>`).join('');
+  $('#maxLong').value = b.cfg.maxLong;
+}
+$('#todayView').onclick = e => {
+  const day = e.target.closest('button[data-day]');
+  if(day){
+    const cfg = coachCfg(), d = +day.dataset.day, has = cfg.days.includes(d);
+    if(!has && cfg.days.length >= 5){ toast('Five run days is the max, because rest is part of the plan.'); return; }
+    cfg.days = has ? cfg.days.filter(x => x !== d) : cfg.days.concat(d);
+    store.set('trackr.coach', cfg); renderToday(); $('#tSet').open = true; return;
+  }
+  const btn = e.target.closest('button[data-do]'); if(!btn || !brief) return;
+  const what = btn.dataset.do;
+  if(what === 'start') launch(brief.session);
+  else if(what === 'easier' || what === 'anyway') launch(brief.alt);
+  else if(what === 'rest'){ store.set('trackr.skip', dkey(Date.now())); renderToday(); }
+  else if(what === 'unrest'){ store.del('trackr.skip'); renderToday(); }
+  else if(what === 'walk'){
+    if(act){ toast('Finish the current activity first.'); return; }
+    pendingPlan = null; type = 'Walking';
+    document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
+    showTab('rec'); render();
+  }
+};
+$('#maxLong').onchange = e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('#todayView').classList.contains('on')) renderToday(); });
 
 /* ---------- persistence + backup ---------- */
 async function protectStorage(){
@@ -893,16 +1166,20 @@ $('#impFile').onchange = async e => {
 
 /* ---------- tabs ---------- */
 function showTab(t){
+  $('#todayView').classList.toggle('on', t === 'today');
   $('#recView').classList.toggle('on', t === 'rec');
   $('#trainView').classList.toggle('on', t === 'train');
   $('#actView').classList.toggle('on', t === 'act');
+  $('#tabToday').classList.toggle('on', t === 'today');
   $('#tabRec').classList.toggle('on', t === 'rec');
   $('#tabTrain').classList.toggle('on', t === 'train');
   $('#tabAct').classList.toggle('on', t === 'act');
   if(t === 'rec') setTimeout(() => map.invalidateSize(), 50);
+  else if(t === 'today') renderToday();
   else if(t === 'train') renderTrain();
   else renderList();
 }
+$('#tabToday').onclick = () => showTab('today');
 $('#tabTrain').onclick = () => showTab('train');
 $('#tabRec').onclick = () => showTab('rec');
 $('#tabAct').onclick = () => showTab('act');
@@ -919,6 +1196,7 @@ if(draft && draft.segs && (draft.status === 'running' || draft.status === 'pause
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 protectStorage();
 render(); renderList(); drawSpark();
+if(act) showTab('rec'); else renderToday();   // opening the app mid-run goes to the run; otherwise to today's briefing
 if(act && act.segs.some(s => s.length)){ const l = act.segs.flat(); map.setView([l[l.length-1][0], l[l.length-1][1]], 16); }
 })();
 </script>
