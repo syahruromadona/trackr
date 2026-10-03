@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fc4c02">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trackr">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Trackr</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#ffffff; --panel:#ffffff; --ink:#1b1b1f; --muted:#6b6b76; --line:#e4e4ea;
+  --accent:#fc4c02; --accent-ink:#ffffff; --danger:#d92d20; --card:#f5f5f8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#121214; --panel:#1b1b1f; --ink:#f2f2f5; --muted:#9a9aa6; --line:#2d2d34; --card:#24242a; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+body{height:100dvh;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-touch-callout:none}
+button{touch-action:manipulation}
+.hero{padding:6px 16px 0;text-align:center;background:var(--panel)}
+.hero .hl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.hero .hv{font-size:min(30vw,150px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);transition:color .2s}
+.hero .hv.moving{color:var(--accent)}
+.hero .hv small{font-size:.2em;font-weight:600;color:var(--muted);margin-left:6px}
+.hero .hp{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted)}
+#spark{width:100%;height:52px;display:block;margin-top:4px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 16px 8px;background:var(--panel);text-align:center}
+.trio .stat .v{font-size:26px}
+.lapbar{background:var(--card);padding:6px 16px;font-size:14px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:1px}
+.lapbar b{font-weight:700} .lapbar .prev{color:var(--muted)}
+.mapwrap{position:relative;flex:1;min-height:90px;display:flex}
+.sheet{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.types.locked{display:none}
+.btn{min-height:60px}
+.btn.lap{flex:2;font-size:22px}
+.lapt{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+#dLaps{max-height:22vh;overflow:auto;margin-bottom:10px}
+header{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;padding-top:calc(6px + env(safe-area-inset-top));background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:18px;letter-spacing:.2px}
+header h1 span{color:var(--accent)}
+#gps{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+#gps i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block}
+#gps.ok i{background:#16a34a} #gps.weak i{background:#f59e0b} #gps.bad i{background:var(--danger)}
+main{flex:1;position:relative;min-height:0}
+.view{position:absolute;inset:0;display:none;flex-direction:column}
+.view.on{display:flex}
+#map{flex:1;min-height:0;background:var(--card)}
+.sheet{background:var(--panel);border-top:1px solid var(--line);padding:12px 16px 14px}
+.types{display:flex;gap:8px;margin-bottom:10px}
+.types button{flex:1;padding:8px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.types button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.types.locked button{pointer-events:none;opacity:.6} .types.locked button.on{opacity:1}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 12px;margin-bottom:12px}
+.stat .v{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.stat.big .v{font-size:40px}
+.controls{display:flex;gap:10px}
+.btn{flex:1;padding:14px;border-radius:12px;border:0;font:inherit;font-weight:700;font-size:17px;cursor:pointer;background:var(--card);color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.5}
+.btn:focus-visible,.types button:focus-visible,nav button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+nav{display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:12px;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;font-weight:600;cursor:pointer;border-top:3px solid transparent}
+nav button.on{color:var(--accent);border-top-color:var(--accent)}
+#list{overflow:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border-radius:14px;padding:14px;cursor:pointer;border:0;text-align:left;font:inherit;color:inherit;width:100%}
+.card .t{font-weight:700} .card .d{font-size:13px;color:var(--muted);margin-bottom:6px}
+.card .row{display:flex;gap:18px;font-variant-numeric:tabular-nums}
+.card .row b{display:block;font-size:20px} .card .row span{font-size:11px;color:var(--muted);text-transform:uppercase}
+.empty{color:var(--muted);text-align:center;margin-top:48px;padding:0 24px}
+#detail{position:absolute;inset:0;background:var(--bg);z-index:1000;display:none;flex-direction:column}
+#detail.on{display:flex}
+#dmap{flex:1;min-height:0}
+.followbtn{position:absolute;right:12px;top:12px;z-index:500;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:3000;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Track<span>r</span></h1>
+  <div id="gps"><i></i><span id="gpsText">Waiting for GPS…</span></div>
+</header>
+
+<main>
+  <section id="recView" class="view on">
+    <div class="hero">
+      <div class="hl">Current speed</div>
+      <div class="hv" id="curBox"><span id="curSpd">--</span><small>km/h</small></div>
+      <div class="hp"><span id="curPace">--</span> /km</div>
+      <canvas id="spark" aria-label="Speed over the last two minutes"></canvas>
+    </div>
+    <div class="trio">
+      <div class="stat"><div class="v" id="sTime">0:00</div><div class="l">Time</div></div>
+      <div class="stat"><div class="v" id="sDist">0.00</div><div class="l">km</div></div>
+      <div class="stat"><div class="v" id="sPace">--</div><div class="l" id="sPaceL">Avg /km</div></div>
+    </div>
+    <div class="lapbar" id="lapbar" hidden>
+      <div id="lapNow"></div>
+      <div class="prev" id="lapPrev"></div>
+    </div>
+    <div class="mapwrap">
+      <div id="map"></div>
+      <button class="followbtn" id="followBtn" aria-pressed="true">Following</button>
+    </div>
+    <div class="sheet">
+      <div class="types" id="types" role="group" aria-label="Activity type">
+        <button data-type="Run" class="on">Run</button>
+        <button data-type="Ride">Ride</button>
+        <button data-type="Walk">Walk</button>
+      </div>
+      <div class="controls" id="controls"></div>
+    </div>
+  </section>
+
+  <section id="actView" class="view">
+    <div id="list"></div>
+  </section>
+
+  <div id="detail">
+    <div id="dmap"></div>
+    <div class="sheet">
+      <div class="t" id="dTitle" style="font-weight:700;font-size:18px"></div>
+      <div class="d" id="dDate" style="color:var(--muted);font-size:13px;margin-bottom:10px"></div>
+      <div class="stats" id="dStats"></div>
+      <div id="dLaps"></div>
+      <div class="controls">
+        <button class="btn" id="dBack">Back</button>
+        <button class="btn primary" id="dGpx">Export GPX</button>
+        <button class="btn" id="dDel" style="color:var(--danger)">Delete</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<nav>
+  <button id="tabRec" class="on">Record</button>
+  <button id="tabAct">Activities</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ---------- helpers ---------- */
+const MAX_ACCURACY = 35;   // metres: ignore fixes worse than this
+const MIN_STEP = 3;        // metres: ignore jitter smaller than this
+const MAX_SPEED = 25;      // m/s: ignore GPS teleports
+function hav(a, b){
+  const R = 6371000, r = Math.PI/180;
+  const dLat = (b[0]-a[0])*r, dLon = (b[1]-a[1])*r;
+  const x = Math.sin(dLat/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+function fmtTime(ms){
+  const s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor(s%3600/60), sec = s%60;
+  const p = n => String(n).padStart(2,'0');
+  return h ? `${h}:${p(m)}:${p(sec)}` : `${m}:${p(sec)}`;
+}
+function fmtPaceSec(spk){
+  if(!isFinite(spk) || spk > 3599) return '--';
+  const s = Math.round(spk);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+function fmtPace(ms, m){
+  if(m < 10) return '--';
+  return fmtPaceSec(ms/m);   // ms per metre == seconds per km
+}
+function fmtSpeed(ms, m){
+  if(m < 10 || ms <= 0) return '--';
+  return (m/1000/(ms/3600000)).toFixed(1);
+}
+const isRide = t => t === 'Ride';
+function toast(msg){
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 3200);
+}
+function tile(map){
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+}
+
+/* ---------- map ---------- */
+const map = L.map('map', {zoomControl:false}).setView([3.139, 101.687], 15);
+tile(map);
+L.control.zoom({position:'bottomright'}).addTo(map);
+const route = L.polyline([], {color:'#fc4c02', weight:5, opacity:.95}).addTo(map);
+let me = null, meDot = null, meAcc = null, follow = true;
+map.on('dragstart', () => setFollow(false));
+function setFollow(v){
+  follow = v;
+  const b = $('#followBtn');
+  b.textContent = v ? 'Following' : 'Re-centre';
+  b.setAttribute('aria-pressed', String(v));
+}
+$('#followBtn').onclick = () => { setFollow(true); if(me) map.setView(me, Math.max(map.getZoom(), 16)); };
+
+/* ---------- activity state ---------- */
+let act = null;            // {type, segs:[[ [lat,lon,alt,t] ]], dist, gain, refAlt, elapsed, tickAt, status, startedAt}
+let type = 'Run';
+let wakeLock = null;
+
+function elapsedNow(){
+  if(!act) return 0;
+  return act.elapsed + (act.status === 'running' ? Date.now() - act.tickAt : 0);
+}
+function saveDraft(){ if(act) store.set('trackr.draft', act); }
+
+function render(){
+  const ms = elapsedNow(), d = act ? act.dist : 0;
+  const ride = isRide(act ? act.type : type);
+  $('#sTime').textContent = fmtTime(ms);
+  $('#sDist').textContent = (d/1000).toFixed(2);
+  $('#sPace').textContent = ride ? fmtSpeed(ms, d) : fmtPace(ms, d);
+  $('#sPaceL').textContent = ride ? 'Avg km/h' : 'Avg /km';
+  $('#types').classList.toggle('locked', !!act);
+  route.setLatLngs(act ? act.segs.map(s => s.map(p => [p[0], p[1]])) : []);
+  renderLap();
+  renderControls();
+}
+function lapLine(n, ms, d){
+  return `<b>Lap ${n}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtSpeed(ms, d)} km/h · ${fmtPace(ms, d)} /km`;
+}
+function renderLap(){
+  const bar = $('#lapbar');
+  bar.hidden = !act;
+  if(!act) return;
+  const n = act.laps.length;
+  $('#lapNow').innerHTML = lapLine(n + 1, elapsedNow() - act.lapT0, act.dist - act.lapD0);
+  $('#lapPrev').innerHTML = n ? 'Last: ' + lapLine(n, act.laps[n-1].time, act.laps[n-1].dist).replace(/<\/?b>/g, '') : 'Tap LAP at each change of pace';
+}
+function renderControls(){
+  const c = $('#controls'); c.innerHTML = '';
+  const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.onclick = fn; c.appendChild(b); };
+  if(!act) add('Start', 'primary', start);
+  else if(act.status === 'running'){ add('LAP', 'primary lap', lap); add('Pause', '', pause); }
+  else { add('Resume', 'primary', resume); add('Finish', 'danger', finish); }
+}
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+function lap(){
+  const ms = elapsedNow(), time = ms - act.lapT0, dist = act.dist - act.lapD0;
+  if(time < 2000) return;
+  act.laps.push({ time, dist });
+  act.lapT0 = ms; act.lapD0 = act.dist;
+  buzz(40); saveDraft(); render();
+}
+
+async function lockScreen(){
+  try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+}
+function unlockScreen(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null; }
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && act && act.status === 'running') lockScreen();
+});
+
+function start(){
+  if(!me) toast('No GPS fix yet — your route starts once it locks on.');
+  act = { type, segs:[[]], dist:0, gain:0, refAlt:null, elapsed:0, tickAt:Date.now(), status:'running', startedAt:Date.now(), laps:[], lapT0:0, lapD0:0 };
+  buzz(60); lockScreen(); saveDraft(); render();
+}
+function pause(){
+  act.elapsed += Date.now() - act.tickAt; act.status = 'paused';
+  unlockScreen(); saveDraft(); render();
+}
+function resume(){
+  act.tickAt = Date.now(); act.status = 'running'; act.segs.push([]);
+  lockScreen(); saveDraft(); render();
+}
+function finish(){
+  if(act.status === 'running') act.elapsed += Date.now() - act.tickAt;
+  act.status = 'done';
+  unlockScreen();
+  if(act.dist < 20){
+    if(!confirm('That activity is under 20 m. Discard it?')){ act.status = 'paused'; act.tickAt = Date.now(); saveDraft(); render(); return; }
+    act = null; store.del('trackr.draft'); render(); return;
+  }
+  const list = store.get('trackr.acts', []);
+  const laps = act.laps.slice();
+  if(laps.length && act.elapsed - act.lapT0 > 2000) laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0 });
+  list.unshift({ id: String(act.startedAt), type: act.type, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps });
+  store.set('trackr.acts', list);
+  act = null; store.del('trackr.draft');
+  render(); renderList(); toast('Activity saved');
+  showTab('act');
+}
+
+/* ---------- current speed ---------- */
+// Prefer the device's own Doppler speed (coords.speed); fall back to distance over a short window of fixes.
+const fixes = [];            // recent usable fixes: [lat, lon, t]
+const samples = [];          // {t, v} once a second, for the sparkline (m/s)
+let spd = null, lastFixAt = 0;
+function updateSpeed(c, t){
+  if(c.accuracy > 50) return;
+  fixes.push([c.latitude, c.longitude, t]);
+  while(fixes.length && t - fixes[0][2] > 8000) fixes.shift();
+  let v = null;
+  if(c.speed != null && isFinite(c.speed)) v = c.speed;
+  else if(fixes.length >= 2){
+    const a = fixes[0], b = fixes[fixes.length-1], dt = (b[2] - a[2])/1000;
+    if(dt >= 2){ const d = hav(a, b); v = d < Math.max(3, c.accuracy*0.5) ? 0 : d/dt; }
+  }
+  if(v == null) return;
+  v = Math.min(v, MAX_SPEED);
+  spd = spd == null ? v : spd + 0.6*(v - spd);   // light smoothing, still snappy for intervals
+  lastFixAt = Date.now();
+}
+function shownSpeed(){
+  if(spd == null || Date.now() - lastFixAt > 7000) return null;
+  return spd < 0.4 ? 0 : spd;
+}
+function renderSpeed(){
+  const v = shownSpeed();
+  $('#curSpd').textContent = v == null ? '--' : (v*3.6).toFixed(1);
+  $('#curPace').textContent = v == null || v < 0.8 ? '--' : fmtPaceSec(1000/v);
+  $('#curBox').classList.toggle('moving', v != null && v >= 0.8);
+}
+function drawSpark(){
+  const cv = $('#spark'); if(!cv.clientWidth) return;
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if(cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const now = Date.now(), span = 120000, pts = samples.filter(s => now - s.t <= span);
+  if(pts.length < 2) return;
+  const max = Math.max(3, ...pts.map(p => p.v));   // m/s, floor keeps a slow jog from looking huge
+  const X = t => (1 - (now - t)/span)*w, Y = v => h - 3 - (v/max)*(h - 8);
+  const css = getComputedStyle(document.documentElement), acc = css.getPropertyValue('--accent').trim();
+  g.beginPath(); g.moveTo(X(pts[0].t), h);
+  pts.forEach(p => g.lineTo(X(p.t), Y(p.v)));
+  g.lineTo(X(pts[pts.length-1].t), h); g.closePath();
+  g.globalAlpha = .22; g.fillStyle = acc; g.fill(); g.globalAlpha = 1;
+  g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p.t), Y(p.v)) : g.moveTo(X(p.t), Y(p.v)));
+  g.lineWidth = 2; g.strokeStyle = acc; g.lineJoin = 'round'; g.stroke();
+}
+window.addEventListener('resize', drawSpark);
+
+/* ---------- GPS ---------- */
+function onPos(pos){
+  const c = pos.coords;
+  me = [c.latitude, c.longitude];
+  updateSpeed(c, pos.timestamp || Date.now());
+  renderSpeed();
+  if(!meDot){
+    meDot = L.circleMarker(me, {radius:8, color:'#fff', weight:3, fillColor:'#2563eb', fillOpacity:1}).addTo(map);
+    meAcc = L.circle(me, {radius:c.accuracy, color:'#2563eb', weight:1, fillOpacity:.1}).addTo(map);
+    map.setView(me, 16);
+  } else { meDot.setLatLng(me); meAcc.setLatLng(me); meAcc.setRadius(c.accuracy); }
+  if(follow) map.panTo(me, {animate:true});
+
+  const g = $('#gps');
+  g.className = c.accuracy <= 15 ? 'ok' : c.accuracy <= MAX_ACCURACY ? 'weak' : 'bad';
+  $('#gpsText').textContent = `GPS ±${Math.round(c.accuracy)} m`;
+
+  if(!act || act.status !== 'running' || c.accuracy > MAX_ACCURACY) return;
+  const seg = act.segs[act.segs.length-1], prev = seg[seg.length-1], t = pos.timestamp || Date.now();
+  if(prev){
+    const d = hav(prev, me), dt = (t - prev[3])/1000;
+    if(d < MIN_STEP) return;
+    if(dt > 0 && d/dt > MAX_SPEED) return;
+    act.dist += d;
+  }
+  const alt = c.altitude;
+  if(alt != null && isFinite(alt)){
+    if(act.refAlt == null) act.refAlt = alt;
+    else if(Math.abs(alt - act.refAlt) >= 3){ if(alt > act.refAlt) act.gain += alt - act.refAlt; act.refAlt = alt; }
+  }
+  seg.push([me[0], me[1], alt != null && isFinite(alt) ? alt : null, t]);
+  saveDraft(); render();
+}
+function onPosErr(e){
+  const g = $('#gps'); g.className = 'bad';
+  $('#gpsText').textContent = e.code === 1 ? 'Location blocked' : e.code === 2 ? 'No GPS signal' : 'GPS timeout';
+  if(e.code === 1) toast('Allow location access in your browser to record.');
+}
+if('geolocation' in navigator){
+  navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy:true, maximumAge:0, timeout:20000 });
+} else {
+  $('#gpsText').textContent = 'Geolocation unsupported';
+}
+setInterval(() => {
+  const v = shownSpeed(), now = Date.now();
+  samples.push({ t: now, v: v || 0 });
+  while(samples.length && now - samples[0].t > 120000) samples.shift();
+  renderSpeed(); drawSpark();
+  if(act && act.status === 'running') render();
+}, 1000);
+
+/* ---------- activity type ---------- */
+$('#types').onclick = e => {
+  const b = e.target.closest('button'); if(!b || act) return;
+  type = b.dataset.type;
+  document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x === b));
+  render();
+};
+
+/* ---------- activities list + detail ---------- */
+function fmtDate(ts){
+  return new Date(ts).toLocaleString(undefined, {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit'});
+}
+function statHtml(v, l){ return `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`; }
+function renderList(){
+  const list = store.get('trackr.acts', []), el = $('#list');
+  el.innerHTML = '';
+  if(!list.length){ el.innerHTML = '<div class="empty">No activities yet. Record your first run, ride or walk.</div>'; return; }
+  list.forEach(a => {
+    const b = document.createElement('button'); b.className = 'card';
+    const ride = isRide(a.type);
+    b.innerHTML = `<div class="t">${a.type}</div><div class="d">${fmtDate(a.date)}</div>
+      <div class="row">
+        <div><b>${(a.dist/1000).toFixed(2)}</b><span>km</span></div>
+        <div><b>${fmtTime(a.time)}</b><span>time</span></div>
+        <div><b>${ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist)}</b><span>${ride ? 'km/h' : '/km'}</span></div>
+      </div>`;
+    b.onclick = () => openDetail(a.id);
+    el.appendChild(b);
+  });
+}
+let dmap = null, dlayer = null, curId = null;
+function openDetail(id){
+  const a = store.get('trackr.acts', []).find(x => x.id === id); if(!a) return;
+  curId = id;
+  $('#detail').classList.add('on');
+  if(!dmap){ dmap = L.map('dmap'); tile(dmap); }
+  if(dlayer) dlayer.remove();
+  const lines = a.segs.filter(s => s.length).map(s => s.map(p => [p[0], p[1]]));
+  dlayer = L.layerGroup().addTo(dmap);
+  lines.forEach(l => L.polyline(l, {color:'#fc4c02', weight:5}).addTo(dlayer));
+  if(lines.length){
+    const first = lines[0][0], lastL = lines[lines.length-1], last = lastL[lastL.length-1];
+    L.circleMarker(first, {radius:7, color:'#fff', weight:2, fillColor:'#16a34a', fillOpacity:1}).addTo(dlayer);
+    L.circleMarker(last, {radius:7, color:'#fff', weight:2, fillColor:'#d92d20', fillOpacity:1}).addTo(dlayer);
+  }
+  setTimeout(() => { dmap.invalidateSize(); if(lines.length) dmap.fitBounds(L.latLngBounds(lines.flat()), {padding:[30,30]}); }, 50);
+  const ride = isRide(a.type);
+  $('#dTitle').textContent = a.type;
+  $('#dDate').textContent = fmtDate(a.date);
+  $('#dStats').innerHTML =
+    statHtml((a.dist/1000).toFixed(2) + ' km', 'Distance') + statHtml(fmtTime(a.time), 'Time') +
+    statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' /km', ride ? 'Avg speed' : 'Avg pace') +
+    statHtml(Math.round(a.gain) + ' m', 'Elev gain');
+  $('#dLaps').innerHTML = (a.laps || []).map((l, i) =>
+    `<div class="lapt"><b>Lap ${i+1}</b><span>${fmtTime(l.time)}</span><span>${(l.dist/1000).toFixed(2)} km</span><span>${fmtSpeed(l.time, l.dist)} km/h</span><span>${fmtPace(l.time, l.dist)}/km</span></div>`).join('');
+}
+$('#dBack').onclick = () => $('#detail').classList.remove('on');
+$('#dDel').onclick = () => {
+  if(!confirm('Delete this activity? This can’t be undone.')) return;
+  store.set('trackr.acts', store.get('trackr.acts', []).filter(x => x.id !== curId));
+  $('#detail').classList.remove('on'); renderList();
+};
+$('#dGpx').onclick = () => {
+  const a = store.get('trackr.acts', []).find(x => x.id === curId); if(!a) return;
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  let x = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Trackr" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>${esc(a.type)} ${esc(new Date(a.date).toISOString())}</name><type>${esc(a.type.toLowerCase())}</type>\n`;
+  a.segs.forEach(s => {
+    if(!s.length) return;
+    x += '<trkseg>\n';
+    s.forEach(p => { x += `<trkpt lat="${p[0]}" lon="${p[1]}">${p[2] != null ? `<ele>${p[2].toFixed(1)}</ele>` : ''}<time>${new Date(p[3]).toISOString()}</time></trkpt>\n`; });
+    x += '</trkseg>\n';
+  });
+  x += '</trk>\n</gpx>\n';
+  const url = URL.createObjectURL(new Blob([x], {type:'application/gpx+xml'}));
+  const l = document.createElement('a'); l.href = url; l.download = `trackr-${a.type.toLowerCase()}-${new Date(a.date).toISOString().slice(0,10)}.gpx`;
+  document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  $('#recView').classList.toggle('on', t === 'rec');
+  $('#actView').classList.toggle('on', t === 'act');
+  $('#tabRec').classList.toggle('on', t === 'rec');
+  $('#tabAct').classList.toggle('on', t === 'act');
+  if(t === 'rec') setTimeout(() => map.invalidateSize(), 50);
+  else renderList();
+}
+$('#tabRec').onclick = () => showTab('rec');
+$('#tabAct').onclick = () => showTab('act');
+
+/* ---------- restore an unfinished recording ---------- */
+const draft = store.get('trackr.draft', null);
+if(draft && draft.segs && (draft.status === 'running' || draft.status === 'paused')){
+  if(draft.status === 'running') draft.elapsed += Date.now() - draft.tickAt;   // time the page was closed counts as moving only up to now; user can pause
+  draft.status = 'paused'; act = draft; type = act.type;
+  if(!act.laps){ act.laps = []; act.lapT0 = 0; act.lapD0 = 0; }
+  document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
+  toast('Restored your unfinished activity (paused).');
+}
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+render(); renderList(); drawSpark();
+if(act && act.segs.some(s => s.length)){ const l = act.segs.flat(); map.setView([l[l.length-1][0], l[l.length-1][1]], 16); }
+})();
+</script>
+</body>
+</html>
