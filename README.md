@@ -29,3 +29,10 @@ The app opens on **Today**: a briefing that reads your history and tells you wha
 - One tap starts the session on the Record screen with timed phases, beeps and speed targets; results (reps done, average vs target) feed the next briefing
 - 12-minute Cooper test logs a VO2max reading when no baseline exists
 - Shows whether you are at your usual running spot
+
+## Longevity focus
+
+- **Train → Longevity** compares your VO2max with age/sex norms (FRIEND registry 2022, treadmill-measured) and shows the value needed for the 25th, 50th, 75th and 90th percentile
+- Birth date and sex are entered in *Coach settings* and stay on the phone (they are also carried in Back up / Restore)
+- The coach picks run vs recovery days adaptively from the last 6 days, with a weekly run budget that ramps up about one run a week, and suggests strength on recovery days (log a 20-min session in one tap)
+- Today shows active minutes against the 150 min/week guideline and strength sessions against 2/week

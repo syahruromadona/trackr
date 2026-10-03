@@ -149,9 +149,17 @@ details.panel summary{cursor:pointer;font-weight:700}
     <div class="panel" id="tLast" hidden></div>
     <details class="panel" id="tSet">
       <summary>Coach settings</summary>
-      <div class="vsub" style="margin-top:8px">Which days do you run? Fewer days means each session matters more; rest days are part of the plan.</div>
+      <div class="vsub" style="margin-top:8px">Days you can train (untick any day you can't). The coach decides which of them are runs and which are recovery, and builds up gradually.</div>
       <div class="chips" id="dayChips"></div>
-      <div class="fld"><label>Longest run you'll do (min)<input id="maxLong" type="number" inputmode="numeric" min="30" max="240" step="5"></label></div>
+      <div class="fld">
+        <label>Longest run (min)<input id="maxLong" type="number" inputmode="numeric" min="30" max="240" step="5"></label>
+        <label>Max runs / week<input id="maxRuns" type="number" inputmode="numeric" min="3" max="6"></label>
+      </div>
+      <div class="vsub" style="margin-top:12px">About you (stays on this phone). Used to compare your VO2max with people your age and sex.</div>
+      <div class="fld">
+        <label>Birth date<input id="pBirth" type="date" style="width:150px"></label>
+        <label>Sex<select id="pSex"><option value="">Choose</option><option value="M">Male</option><option value="F">Female</option></select></label>
+      </div>
     </details>
   </section>
 
@@ -193,6 +201,7 @@ details.panel summary{cursor:pointer;font-weight:700}
   </section>
 
   <section id="trainView" class="view">
+    <div class="panel" id="longPanel"></div>
     <div class="panel">
       <h2>VO2max</h2>
       <div class="vbig" id="vEst">--</div>
@@ -847,6 +856,20 @@ function renderTrain(){
   }
   s.innerHTML += `<div class="sess"><span><b>12-min Cooper test</b><small>Steady hard effort. Logs a VO2max reading when done</small></span><button class="btn" data-test="1">Start</button></div>`;
   renderWeekly();
+  renderLongevity(ref);
+}
+// Where this VO2max sits for your age and sex, and what the next milestones are worth.
+function renderLongevity(ref){
+  const el = $('#longPanel'), nr = normRow(profile());
+  if(!nr){ el.innerHTML = '<h2>Longevity</h2><div class="vsub">Add your birth date and sex in Coach settings (Today tab) to see how your VO2max compares with people your age.</div>'; return; }
+  if(!ref){ el.innerHTML = '<h2>Longevity</h2><div class="vsub">Log a VO2max reading or run the 12-minute test to see where you stand.</div>'; return; }
+  const q = pctOf(ref.v, nr.row), who = `${nr.sex === 'M' ? 'men' : 'women'} aged ${Math.floor(nr.age/10)*10}–${Math.floor(nr.age/10)*10 + 9}`;
+  const goals = [[25, 'Out of the lowest band'], [50, 'Average for your age'], [75, 'High: where most of the benefit is'], [90, 'Top 10%']]
+    .map(([p, label]) => { const v = valAtPct(nr.row, p), d = v - ref.v; return `<div class="zone"><span>${ordinal(p)} percentile<small>${label}</small></span><span class="r">${v.toFixed(1)}<small>${d > 0 ? '+' + d.toFixed(1) + ' to go' : 'reached ✓'}</small></span></div>`; }).join('');
+  el.innerHTML = `<h2>Longevity</h2><div class="vbig" style="font-size:34px">${fitBand(q.p)}</div>
+    <div class="vsub">${ref.v.toFixed(1)} ml/kg/min is ${q.txt} for ${who}.</div><div style="margin-top:8px">${goals}</div>
+    <div class="vsub" style="margin-top:10px">In a study of about 122,000 adults, the least fit group had roughly five times the death risk of the fittest, and the benefit kept rising with fitness (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6324439" target="_blank" rel="noopener" style="color:var(--accent)">Mandsager et al., 2018</a>). That is observational: fitness is a strong marker, not proof of cause. Consistent training commonly raises VO2max by 10–20% in the first year.</div>
+    <div class="vsub" style="margin-top:6px">Reference: FRIEND registry 2022, lab-measured on treadmills. A GPS or watch estimate is approximate, so retest with the 12-minute test every couple of months.</div>`;
 }
 function drawVChart(months, logs){
   const cv = $('#vchart'); if(!cv.clientWidth) return;
@@ -904,11 +927,41 @@ $('#vList').onclick = e => {
 };
 
 /* ---------- coach: the daily briefing ---------- */
-// Weekly shape by number of run days. Hard sessions are never stacked; the guards below enforce that at runtime.
-const TEMPLATES = {
-  1: ['long'], 2: ['interval', 'long'], 3: ['interval', 'pace', 'long'],
-  4: ['interval', 'easy', 'pace', 'long'], 5: ['interval', 'easy', 'pace', 'easy', 'long']
+// Reference VO2max percentiles (ml/kg/min) at the 10th..90th percentile, treadmill-measured:
+// FRIEND registry 2022, Mayo Clin Proc "Updated reference standards for cardiorespiratory fitness".
+const PCTS = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+const NORMS = {
+  M: { 20:[28.6,35.2,40.0,43.6,46.5,49.0,51.9,54.5,58.6], 30:[24.9,29.8,33.5,37.0,39.7,43.4,46.4,50.0,55.5], 40:[22.1,26.7,29.7,32.4,35.3,37.9,40.9,45.2,50.8],
+       50:[18.6,22.2,24.5,26.9,29.2,31.8,34.3,38.3,43.4], 60:[15.8,18.5,20.7,22.8,24.6,26.5,28.7,32.0,37.1], 70:[13.6,15.9,17.3,19.1,20.6,22.2,23.8,25.9,29.4], 80:[12.9,14.8,16.1,16.6,17.6,18.4,20.0,21.4,22.8] },
+  F: { 20:[22.5,27.2,30.8,34.0,36.6,39.0,41.8,44.8,49.0], 30:[18.6,21.9,24.2,26.4,28.3,31.0,33.6,37.0,42.1], 40:[17.2,19.7,21.8,23.9,25.7,27.7,30.0,33.0,37.8],
+       50:[16.5,18.5,20.1,21.5,22.9,24.6,26.3,28.4,32.4], 60:[13.4,15.4,17.0,18.3,19.6,20.9,22.4,24.3,27.3], 70:[12.3,14.0,15.2,16.2,17.2,18.3,19.6,20.8,22.8], 80:[11.4,12.6,13.7,14.7,15.4,16.0,17.3,18.4,20.8] }
 };
+const profile = () => store.get('trackr.profile', null);
+function ageOf(p){
+  if(!p || !p.birth) return null;
+  const b = new Date(p.birth), n = new Date(); if(isNaN(b)) return null;
+  let a = n.getFullYear() - b.getFullYear();
+  if(n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--;
+  return a;
+}
+function normRow(p){
+  const age = ageOf(p); if(age == null || !NORMS[p.sex]) return null;
+  return { age, sex: p.sex, row: NORMS[p.sex][Math.max(20, Math.min(80, Math.floor(age/10)*10))] };
+}
+const ordinal = n => { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+function pctOf(v, row){
+  if(v < row[0]) return { p: Math.max(1, Math.round(10*v/row[0])), txt: 'below the 10th percentile' };
+  if(v >= row[8]) return { p: 90, txt: 'in the top 10%' };
+  let i = 0; while(v >= row[i + 1]) i++;
+  const p = PCTS[i] + (v - row[i])/(row[i + 1] - row[i])*10;
+  return { p, txt: `about the ${ordinal(Math.round(p))} percentile` };
+}
+function valAtPct(row, p){
+  if(p <= 10) return row[0]; if(p >= 90) return row[8];
+  const i = Math.floor(p/10) - 1, f = (p - PCTS[i])/10;
+  return row[i] + f*(row[i + 1] - row[i]);
+}
+const fitBand = p => p < 25 ? 'Low' : p < 50 ? 'Below average' : p < 75 ? 'Above average' : p < 97.7 ? 'High' : 'Elite';
 const KIND_NAME = { interval:'VO2max intervals', pace:'Threshold run', long:'Long easy run', easy:'Easy jog', test:'12-minute test', comeback:'Comeback jog' };
 const LADDER = ['8 × 1 min', '30/30 × 16', '6 × 2 min', '5 × 3 min', 'Norwegian 4×4'];   // easiest to hardest
 const THRESH = [ { reps:1, work:900, rest:0 }, { reps:2, work:480, rest:120 }, { reps:2, work:600, rest:120 }, { reps:3, work:480, rest:120 }, { reps:2, work:900, rest:180 } ];
@@ -921,13 +974,32 @@ const round5 = m => Math.round(m/5)*5;
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 const kmh = v => (v*3.6).toFixed(1);
 const band = (lo, hi) => `${kmh(lo)}–${kmh(hi)} km/h`;
-const coachCfg = () => Object.assign({ days: [2, 4, 6], maxLong: 60 }, store.get('trackr.coach', {}));
+// days = days you are available to train (default: every day); maxRuns caps the weekly runs the coach will ramp up to
+const coachCfg = () => Object.assign({ days: [0, 1, 2, 3, 4, 5, 6], maxLong: 60, maxRuns: 5 }, store.get('trackr.coach', {}));
 const isHard = a => a.type === 'Interval' || !!(a.coach && (a.coach.kind === 'interval' || a.coach.kind === 'pace'));
-const runsOnly = () => store.get('trackr.acts', []).filter(a => !/walk/i.test(a.type)).sort((a, b) => b.date - a.date);
-function slotFor(dow, days){
-  const ds = [1, 2, 3, 4, 5, 6, 0].filter(d => days.includes(d)), i = ds.indexOf(dow);
-  return i < 0 ? null : (TEMPLATES[Math.min(ds.length, 5)] || ['easy'])[i];
+const runsOnly = () => store.get('trackr.acts', []).filter(a => !/walk|strength/i.test(a.type)).sort((a, b) => b.date - a.date);
+// Runs per week ramp up slowly from what you actually do (about one extra run a week as the base grows), never above maxRuns.
+const runBudget = (acts, cfg) => clamp(Math.round(acts.filter(a => daysAgo(a.date) <= 55).length/8) + 1, 3, cfg.maxRuns);
+// Choose today's kind from what the last 6 days already contain, instead of fixed weekdays: one interval session, one long easy run,
+// a threshold run once the budget allows, and easy jogs for the rest. Never a hard session within a day of another.
+function pickKind(acts, budget, hardGap){
+  const r6 = acts.filter(a => daysAgo(a.date) <= 5);
+  if(r6.length >= budget) return { rest: `You have run ${r6.length} times in the last 6 days, which is the weekly budget while your body adapts. We add about one run a week as your base grows. Today is recovery.` };
+  if(acts.some(a => daysAgo(a.date) === 1) && acts.some(a => daysAgo(a.date) === 2)) return { rest: 'Two days of running in a row is the limit for now. Today is recovery, so your legs absorb the work.' };
+  const n = k => r6.filter(a => (a.coach && a.coach.kind === k) || (k === 'interval' && a.type === 'Interval')).length;
+  if(!n('interval') && hardGap >= 2) return { kind: 'interval' };
+  if(!n('long') && hardGap >= 2) return { kind: 'long' };
+  if(budget >= 4 && !n('pace') && hardGap >= 2) return { kind: 'pace' };
+  return { kind: 'easy' };
 }
+const NEXT_HINT = {
+  interval: 'Tomorrow: recovery or an easy jog. Never two hard days in a row.',
+  pace: 'Tomorrow: recovery or an easy jog.',
+  long: 'Next: a recovery day, then an easy jog.',
+  easy: 'Next: a harder session once you have recovered.',
+  comeback: 'Next: another easy jog, then we build.',
+  test: 'Next: the coach sets your targets from the result.'
+};
 // Move up a level only if the last session of this kind was completed on target; repeat otherwise; step back after a long gap.
 function nextLevel(acts, kind, max){
   const last = acts.find(a => a.coach && a.coach.kind === kind && a.coach.level != null);
@@ -1026,21 +1098,29 @@ function coachBrief(){
   const ctx = { vv: b.vv, acts, cfg };
   b.doneToday = acts.find(a => daysAgo(a.date) === 0);
   b.skipped = store.get('trackr.skip', '') === dkey(Date.now());
-  const slot = slotFor(dow, cfg.days);
+  const all = store.get('trackr.acts', []);
+  b.budget = runBudget(acts, cfg);
+  b.strength7 = all.filter(a => a.type === 'Strength' && daysAgo(a.date) <= 6).length;
+  b.activeMin = all.filter(a => daysAgo(a.date) <= 6).reduce((s, a) => s + a.time, 0)/60000;
   let kind = null;
+  const pk = ref ? pickKind(acts, b.budget, hardGap) : null;
   if(b.doneToday){ b.mode = 'done'; }
   else if(b.skipped){ b.mode = 'rest'; b.why.push('You chose to rest today. Adaptation happens during recovery, so that is a good call.'); }
   else if(!ref){ kind = 'test'; b.why.push('I have no VO2max for you yet. A 12-minute all-out test gives me a baseline to set every target from. Run as far as you can at a steady hard effort.'); }
+  else if(!cfg.days.includes(dow)){ b.mode = 'rest'; b.why.push('You marked today as a day off.'); }
   else if(since >= 14 && acts.length){ kind = 'comeback'; b.why.push(`It has been ${since} days since your last run, so today is a gentle return with no hard efforts. Fitness comes back faster than it feels like it will.`); }
-  else if(!slot){ b.mode = 'rest'; b.why.push(`Today is a rest day in your plan (${cfg.days.length} run days a week). Rest is when the training from your hard days actually sinks in.`); }
+  else if(pk.rest){ b.mode = 'rest'; b.why.push(pk.rest); }
   else {
-    kind = slot;
-    if(slot === 'interval' || slot === 'pace'){
-      if(hardGap <= 1){ kind = 'easy'; b.why.push(`You did a hard session ${hardGap === 0 ? 'today' : 'yesterday'}, so hard work today would just dig a hole. Easy jog instead.`); }
-      else if(hard6 >= 2){ kind = 'easy'; b.why.push('You have already done two hard sessions in the last 6 days. Easy today.'); }
+    kind = pk.kind;
+    if(kind === 'interval' || kind === 'pace'){
+      if(hard6 >= 2){ kind = 'easy'; b.why.push('You have already done two hard sessions in the last 6 days. Easy today.'); }
       else if(since >= 8){ kind = 'easy'; b.why.push(isFinite(since) ? `First run after ${since} days off. Keep it easy and save the hard work for next time.` : 'No runs on record yet, so your first session is an easy one while I learn your pace.'); }
       else if(km28 > 0 && b.km7 > 1.5*Math.max(km28, 8)){ kind = 'easy'; b.why.push(`Your last 7 days (${b.km7.toFixed(0)} km) are well above your 4-week average, so I am holding back to keep you healthy.`); }
     }
+  }
+  if(b.mode === 'rest'){
+    b.why.push(b.strength7 >= 2 ? `Strength is covered this week (${b.strength7} sessions). A relaxed walk is plenty today.` :
+      `Strength matters as much as VO2max for staying strong and independent as you age (${b.strength7} of 2 sessions this week). Try 20 minutes: squats, lunges, push-ups, rows or pull-ups, and planks. Or just go for an easy walk.`);
   }
   if(b.mode === 'run' && kind){
     b.session = kind === 'test' ? makeSession('test', { vv: 0, acts, cfg }) : makeSession(kind, ctx);
@@ -1053,10 +1133,11 @@ function coachBrief(){
     }
   }
   if(ref && b.mode !== 'done'){ b.alt = makeSession(kind === 'comeback' ? 'comeback' : 'easy', ctx); }
-  // what is next?
-  for(let i = 1; i <= 7; i++){
-    const d = (dow + i) % 7, s = slotFor(d, cfg.days);
-    if(s){ b.next = `${i === 1 ? 'Tomorrow' : DOW[d]}: ${KIND_NAME[s]}`; break; }
+  b.next = b.mode === 'run' ? NEXT_HINT[kind] : b.mode === 'done' ? (b.doneToday.coach && NEXT_HINT[b.doneToday.coach.kind]) || 'Tomorrow: the coach picks based on how today went.' : 'Tomorrow: back to a session.';
+  const nr = normRow(profile());
+  if(b.mode === 'run' && kind === 'interval' && ref && nr){
+    const q = pctOf(ref.v, nr.row);
+    b.why.push(`Intervals are the fastest way to raise VO2max. Your ${ref.v.toFixed(1)} is ${q.txt} for ${nr.sex === 'M' ? 'men' : 'women'} aged ${Math.floor(nr.age/10)*10}–${Math.floor(nr.age/10)*10 + 9} (${fitBand(q.p)} band). Each point you add moves you up.`);
   }
   return b;
 }
@@ -1065,15 +1146,16 @@ function renderToday(){
   const b = brief, now = new Date(), hr = now.getHours();
   const wkStart = startOfDay(Date.now()) - ((now.getDay() + 6) % 7)*DAY;
   const wk = b.acts.filter(a => a.date >= wkStart);
+  const nrm = normRow(profile()), bandTxt = nrm && b.ref ? ' · ' + fitBand(pctOf(b.ref.v, nrm.row).p) : '';
   $('#tHead').innerHTML =
     `<div class="vsub">${now.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' })}</div>
      <div class="ttl" style="font-size:28px">Good ${hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening'}</div>
      <div class="spot" id="spotTxt"></div>
-     <span class="pill">VO2max ${b.ref ? b.ref.v.toFixed(1) : '--'}</span><span class="pill">This week ${(wk.reduce((s, a) => s + a.dist, 0)/1000).toFixed(1)} km · ${wk.length} run${wk.length === 1 ? '' : 's'}</span><span class="pill">${b.last ? (b.since === 0 ? 'Ran today' : `Last run ${b.since} day${b.since === 1 ? '' : 's'} ago`) : 'No runs yet'}</span>`;
+     <span class="pill">VO2max ${b.ref ? b.ref.v.toFixed(1) : '--'}${bandTxt}</span><span class="pill">Last 7 days: ${Math.round(b.activeMin)}/150 min</span><span class="pill">Strength ${b.strength7}/2</span><span class="pill">This week ${(wk.reduce((s, a) => s + a.dist, 0)/1000).toFixed(1)} km · ${wk.length} run${wk.length === 1 ? '' : 's'}</span><span class="pill">${b.last ? (b.since === 0 ? 'Ran today' : `Last run ${b.since} day${b.since === 1 ? '' : 's'} ago`) : 'No runs yet'}</span>`;
   renderSpot();
   const S = $('#tSession');
   const why = b.why.length ? `<ul class="why">${b.why.map(w => `<li>${w}</li>`).join('')}</ul>` : '';
-  const next = b.next ? `<div class="vsub" style="margin-top:10px">Next up — ${b.next}</div>` : '';
+  const next = b.next ? `<div class="vsub" style="margin-top:10px">${b.next}</div>` : '';
   if(b.mode === 'run'){
     const s = b.session;
     S.innerHTML = `<h2>Today's session</h2><div class="ttl">${s.title}</div><div class="vsub">about ${Math.round(s.total/60)} min${s.levelTxt ? ' · ' + s.levelTxt : ''}</div>
@@ -1082,8 +1164,8 @@ function renderToday(){
       <div class="alt">${b.alt && b.kind !== 'easy' && b.kind !== 'comeback' ? '<button data-do="easier">Make it easier</button>' : ''}<button data-do="rest">Rest today</button></div>${next}`;
   } else if(b.mode === 'rest'){
     S.innerHTML = `<h2>Today</h2><div class="ttl">Rest day</div>${why}
-      <div class="controls"><button class="btn" data-do="walk">Record a recovery walk</button></div>
-      <div class="alt">${b.alt ? '<button data-do="anyway">Easy jog anyway</button>' : ''}${b.skipped ? '<button data-do="unrest">Actually, give me a session</button>' : ''}</div>${next}`;
+      <div class="controls"><button class="btn primary" data-do="strength">Log a 20-min strength session</button></div>
+      <div class="alt"><button data-do="walk">Record a walk</button>${b.alt ? '<button data-do="anyway">Easy jog anyway</button>' : ''}${b.skipped ? '<button data-do="unrest">Give me a session</button>' : ''}</div>${next}`;
   } else {
     const a = b.doneToday;
     S.innerHTML = `<h2>Today</h2><div class="ttl">Done for today ✓</div>
@@ -1096,12 +1178,14 @@ function renderToday(){
   if(la && !L.hidden) L.innerHTML = `<h2>Last run</h2><b>${la.type}${la.plan ? ' · ' + la.plan : ''}</b> · ${fmtDate(la.date)}<div class="vsub">${(la.dist/1000).toFixed(2)} km · ${fmtTime(la.time)} · ${fmtPace(la.time, la.dist)} /km</div>${la.coach ? `<div class="vsub" style="margin-top:4px">${coachNote(la.coach)}</div>` : ''}`;
   $('#dayChips').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `<button data-day="${d}" class="${b.cfg.days.includes(d) ? 'on' : ''}">${DOW[d]}</button>`).join('');
   $('#maxLong').value = b.cfg.maxLong;
+  $('#maxRuns').value = b.cfg.maxRuns;
+  const pr = profile() || {};
+  $('#pBirth').value = pr.birth || ''; $('#pSex').value = pr.sex || '';
 }
 $('#todayView').onclick = e => {
   const day = e.target.closest('button[data-day]');
   if(day){
     const cfg = coachCfg(), d = +day.dataset.day, has = cfg.days.includes(d);
-    if(!has && cfg.days.length >= 5){ toast('Five run days is the max, because rest is part of the plan.'); return; }
     cfg.days = has ? cfg.days.filter(x => x !== d) : cfg.days.concat(d);
     store.set('trackr.coach', cfg); renderToday(); $('#tSet').open = true; return;
   }
@@ -1111,6 +1195,11 @@ $('#todayView').onclick = e => {
   else if(what === 'easier' || what === 'anyway') launch(brief.alt);
   else if(what === 'rest'){ store.set('trackr.skip', dkey(Date.now())); renderToday(); }
   else if(what === 'unrest'){ store.del('trackr.skip'); renderToday(); }
+  else if(what === 'strength'){
+    const list = store.get('trackr.acts', []), t = Date.now();
+    list.unshift({ id: 's' + t, type: 'Strength', date: t, dist: 0, time: 20*60000, gain: 0, segs: [], laps: [] });
+    store.set('trackr.acts', list); buzz(40); toast('Strength session logged'); renderToday(); renderList();
+  }
   else if(what === 'walk'){
     if(act){ toast('Finish the current activity first.'); return; }
     pendingPlan = null; type = 'Walking';
@@ -1118,7 +1207,10 @@ $('#todayView').onclick = e => {
     showTab('rec'); render();
   }
 };
-$('#maxLong').onchange = e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
+$('#maxRuns').onchange = e => { const cfg = coachCfg(); cfg.maxRuns = clamp(Math.round(+e.target.value) || 5, 3, 6); store.set('trackr.coach', cfg); renderToday(); };
+const saveProfile = () => { store.set('trackr.profile', { birth: $('#pBirth').value, sex: $('#pSex').value }); renderToday(); $('#tSet').open = true; };
+$('#pBirth').onchange = saveProfile; $('#pSex').onchange = saveProfile;
+$('#maxLong').onchange =e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('#todayView').classList.contains('on')) renderToday(); });
 
 /* ---------- persistence + backup ---------- */
@@ -1141,7 +1233,7 @@ function download(name, text, mime){
 $('#expAll').onclick = () => {
   const acts = store.get('trackr.acts', []), vo2 = store.get('trackr.vo2', []);
   if(!acts.length && !vo2.length){ toast('Nothing to back up yet.'); return; }
-  download(`trackr-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({ app:'trackr', version:2, activities:acts, vo2 }), 'application/json');
+  download(`trackr-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({ app:'trackr', version:2, activities:acts, vo2, profile: profile() || undefined }), 'application/json');
 };
 $('#impAll').onclick = () => $('#impFile').click();
 $('#impFile').onchange = async e => {
@@ -1152,7 +1244,9 @@ $('#impFile').onchange = async e => {
       .filter(a => a && a.id && Array.isArray(a.segs) && isFinite(a.dist) && isFinite(a.time) && isFinite(a.date));
     const readings = (data && data.app === 'trackr' && Array.isArray(data.vo2) ? data.vo2 : [])
       .filter(r => r && r.id && isFinite(r.value) && isFinite(r.date));
-    if(!incoming.length && !readings.length){ toast('That file has no Trackr data.'); return; }
+    const pf = data && data.app === 'trackr' && data.profile && /^\d{4}-\d{2}-\d{2}$/.test(data.profile.birth || '') && (data.profile.sex === 'M' || data.profile.sex === 'F') ? data.profile : null;
+    if(pf && !profile()) store.set('trackr.profile', { birth: pf.birth, sex: pf.sex });   // never overwrite what you set on this phone
+    if(!incoming.length && !readings.length && !pf){ toast('That file has no Trackr data.'); return; }
     const have = store.get('trackr.acts', []), ids = new Set(have.map(a => a.id));
     const fresh = incoming.filter(a => !ids.has(a.id));
     store.set('trackr.acts', have.concat(fresh).sort((a, b) => b.date - a.date));
