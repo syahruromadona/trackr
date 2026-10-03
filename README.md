@@ -36,3 +36,11 @@ The app opens on **Today**: a briefing that reads your history and tells you wha
 - Birth date and sex are entered in *Coach settings* and stay on the phone (they are also carried in Back up / Restore)
 - The coach picks run vs recovery days adaptively from the last 6 days, with a weekly run budget that ramps up about one run a week, and suggests strength on recovery days (log a 20-min session in one tap)
 - Today shows active minutes against the 150 min/week guideline and strength sessions against 2/week
+
+## Speed profiles and reps
+
+- Every run keeps a speed profile (one reading per 10 s) so the fast and slow parts survive, unlike a single average
+- The saved-activity screen shows a speed chart with the fast parts shaded, the work-only average, the rest-of-run average, the fastest rep and how much the last rep faded
+- Interval-style surges are detected in runs that were not recorded as sessions, and count as hard days for the coach
+- The VO2max estimate uses the profile (3, 4, 5, 8, 12, 20 and 30 minute windows)
+- Restoring a backup that carries profiles upgrades activities you already have
