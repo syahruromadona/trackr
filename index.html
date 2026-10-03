@@ -748,7 +748,7 @@ function velAtVo2(vo2){   // m/s at which running costs `vo2` ml/kg/min
   const a = 0.000104, b = 0.182258, c = -4.60 - vo2;
   return (-b + Math.sqrt(b*b - 4*a*c))/(2*a)/60;
 }
-const EFFORT_MIN = [5, 8, 12, 20, 30];  // best-effort windows, minutes
+const EFFORT_MIN = [3, 4, 5, 8, 12, 20, 30];  // best-effort windows, minutes (3-4 min catch interval reps, whose recoveries drag longer windows down)
 const GLITCH_SPEED = 9;                  // m/s: a step faster than this is a GPS jump, not running
 const MAX_VDOT = 85;                     // above the world record means bad data
 const effMemo = {};
