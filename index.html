@@ -84,6 +84,42 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
 #detail.on{display:flex}
 #dmap{flex:1;min-height:0}
 .followbtn{position:absolute;right:12px;top:12px;z-index:500;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
+[hidden]{display:none !important}
+input,select{-webkit-user-select:text;user-select:text}
+.hero .hv.ok{color:#16a34a}.hero .hv.low{color:#f59e0b}.hero .hv.high{color:#3b82f6}
+.plan{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px;color:#fff;background:#52525b}
+.plan.work{background:var(--accent)}.plan.rest{background:#2563eb}
+.plan .pl{font-size:13px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.plan .pt{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.plan .pr{text-align:right;font-size:14px;line-height:1.35}
+.planchip{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);padding:6px 8px 6px 16px;font-size:14px}
+.planchip button{border:0;background:none;color:var(--muted);font:inherit;font-size:22px;cursor:pointer;padding:2px 10px}
+#trainView{overflow:auto;padding:12px 16px 20px;gap:12px}
+.panel{background:var(--card);border-radius:14px;padding:14px;flex:none}
+.panel h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+.vbig{font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.vsub{color:var(--muted);font-size:13px;margin-top:4px}
+#vchart{width:100%;height:130px;display:block;margin-top:10px}
+.zone{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px;font-variant-numeric:tabular-nums}
+.zone:last-child{border:0}.zone small{color:var(--muted);font-size:12px;display:block}.zone .r{text-align:right}
+.sess{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.sess b{display:block}.sess small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.sess .btn{flex:none;min-height:40px;padding:8px 18px;font-size:15px}
+.wk{display:flex;align-items:flex-end;gap:6px;height:100px;margin-top:6px}
+.wk div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;height:100%;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wk i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.fld{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:flex-end}
+.fld label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.fld input,.fld select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:16px;width:84px}
+.fld select{width:auto}
+.sbtn{border:0;border-radius:10px;padding:11px 16px;background:var(--ink);color:var(--bg);font:inherit;font-weight:700;cursor:pointer}
+.seg{display:flex;gap:6px;margin-bottom:6px}
+.seg button{flex:1;padding:8px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg button:disabled{opacity:.4}
+.lapt.work b{color:var(--accent)}
+.vlog{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:4px 0;font-variant-numeric:tabular-nums}
+.vlog button{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 8px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:3000;max-width:90vw;text-align:center}
 </style>
 </head>
@@ -106,6 +142,11 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
       <div class="stat"><div class="v" id="sDist">0.00</div><div class="l">km</div></div>
       <div class="stat"><div class="v" id="sPace">--</div><div class="l" id="sPaceL">Avg /km</div></div>
     </div>
+    <div class="planchip" id="planChip" hidden><span id="planChipTxt"></span><button id="planClear" aria-label="Clear plan">×</button></div>
+    <div class="plan" id="planBar" hidden>
+      <div><div class="pl" id="plLabel"></div><div class="pt" id="plTime"></div></div>
+      <div class="pr" id="plTarget"></div>
+    </div>
     <div class="lapbar" id="lapbar" hidden>
       <div id="lapNow"></div>
       <div class="prev" id="lapPrev"></div>
@@ -123,6 +164,45 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
         <button data-type="Walking">Walking</button>
       </div>
       <div class="controls" id="controls"></div>
+    </div>
+  </section>
+
+  <section id="trainView" class="view">
+    <div class="panel">
+      <h2>VO2max</h2>
+      <div class="vbig" id="vEst">--</div>
+      <div class="vsub" id="vSub"></div>
+      <canvas id="vchart" aria-label="VO2max trend by month"></canvas>
+      <div class="vsub" id="vLegend"></div>
+      <div id="vList"></div>
+      <div class="fld">
+        <label>Reading<input id="vIn" type="number" inputmode="decimal" min="10" max="95" step="0.1" placeholder="e.g. 48"></label>
+        <label>Source<select id="vSrc"><option>Watch</option><option>Lab test</option><option>Cooper test</option><option>Other</option></select></label>
+        <button class="sbtn" id="vAdd">Log it</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Target speeds</h2>
+      <div class="seg" id="refSeg"><button data-ref="est">From estimate</button><button data-ref="log">From logged</button></div>
+      <div class="vsub" id="refNote" style="margin:0 0 6px"></div>
+      <div id="zones"></div>
+    </div>
+    <div class="panel">
+      <h2>VO2max sessions</h2>
+      <div id="sessions"></div>
+      <div class="fld">
+        <label>Reps<input id="cReps" type="number" inputmode="numeric" value="6" min="1" max="30"></label>
+        <label>Work (min)<input id="cWork" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
+        <label>Rest (min)<input id="cRest" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
+        <label>From %<input id="cLo" type="number" inputmode="numeric" value="95" min="60" max="130"></label>
+        <label>To %<input id="cHi" type="number" inputmode="numeric" value="102" min="60" max="130"></label>
+        <button class="sbtn" id="cGo">Start custom</button>
+      </div>
+      <div class="vsub">Targets are % of your speed at VO2max. Rests are free-pace jogs; a 10 min warm-up and 5 min cool-down are added (tap Next to skip).</div>
+    </div>
+    <div class="panel">
+      <h2>Weekly distance (km)</h2>
+      <div class="wk" id="wk"></div>
     </div>
   </section>
 
@@ -157,6 +237,7 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
 
 <nav>
   <button id="tabRec" class="on">Record</button>
+  <button id="tabTrain">Train</button>
   <button id="tabAct">Activities</button>
 </nav>
 
@@ -264,32 +345,93 @@ function render(){
   $('#sPaceL').textContent = ride ? 'Avg km/h' : 'Avg /km';
   $('#types').classList.toggle('locked', !!act);
   route.setLatLngs(act ? act.segs.map(s => s.map(p => [p[0], p[1]])) : []);
+  renderPlan();
   renderLap();
   renderControls();
 }
-function lapLine(n, ms, d){
-  return `<b>Lap ${n}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtSpeed(ms, d)} km/h · ${fmtPace(ms, d)} /km`;
+function lapLine(label, ms, d){
+  return `<b>${label}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtSpeed(ms, d)} km/h · ${fmtPace(ms, d)} /km`;
 }
 function renderLap(){
   const bar = $('#lapbar');
-  bar.hidden = !act;
-  if(!act) return;
+  bar.hidden = !act || (act.plan && !act.plan.done);
+  if(bar.hidden) return;
   const n = act.laps.length;
-  $('#lapNow').innerHTML = lapLine(n + 1, elapsedNow() - act.lapT0, act.dist - act.lapD0);
-  $('#lapPrev').innerHTML = n ? 'Last: ' + lapLine(n, act.laps[n-1].time, act.laps[n-1].dist).replace(/<\/?b>/g, '') : 'Tap LAP at each change of pace';
+  $('#lapNow').innerHTML = lapLine(`Lap ${n + 1}`, elapsedNow() - act.lapT0, act.dist - act.lapD0);
+  $('#lapPrev').innerHTML = n ? 'Last: ' + lapLine(act.laps[n-1].label || `Lap ${n}`, act.laps[n-1].time, act.laps[n-1].dist).replace(/<\/?b>/g, '') : 'Tap LAP at each change of pace';
 }
 function renderControls(){
   const c = $('#controls'); c.innerHTML = '';
   const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.onclick = fn; c.appendChild(b); };
   if(!act) add('Start', 'primary', start);
-  else if(act.status === 'running'){ add('LAP', 'primary lap', lap); add('Pause', '', pause); }
+  else if(act.status === 'running'){
+    if(act.plan && !act.plan.done) add('Next', 'primary lap', () => advancePhase(true)); else add('LAP', 'primary lap', lap);
+    add('Pause', '', pause);
+  }
   else { add('Resume', 'primary', resume); add('Finish', 'danger', finish); }
 }
+
+/* ---------- structured sessions ---------- */
+let pendingPlan = null;     // {name, phases:[{kind,dur,label,lo,hi}]}  lo/hi in m/s
+let actx = null;
+function beep(freq, ms){
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = freq; g.gain.value = .3; o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + ms/1000);
+  }catch(e){}
+}
+function cue(kind){
+  if(kind === 'work'){ beep(988, 180); setTimeout(() => beep(988, 180), 260); buzz([200, 100, 200]); }
+  else if(kind === 'end'){ beep(784, 200); setTimeout(() => beep(988, 200), 260); setTimeout(() => beep(1175, 350), 520); buzz([300, 100, 300, 100, 300]); }
+  else { beep(523, 350); buzz(350); }
+}
+function curPhase(){ return act && act.plan && !act.plan.done ? act.plan.phases[act.plan.idx] : null; }
+function advancePhase(skipped){
+  const p = act.plan, ph = p.phases[p.idx], ms = elapsedNow();
+  const bound = skipped ? ms : p.t0 + ph.dur*1000;       // natural ends land exactly on the boundary, so phases never drift
+  act.laps.push({ time: Math.max(0, bound - act.lapT0), dist: act.dist - act.lapD0, label: ph.label, kind: ph.kind });
+  act.lapT0 = bound; act.lapD0 = act.dist; p.t0 = bound; p.idx++; p.lastTick = -1;
+  if(p.idx >= p.phases.length){ p.done = true; cue('end'); } else cue(p.phases[p.idx].kind);
+  saveDraft(); render();
+}
+function planTick(){
+  if(!act || act.status !== 'running' || !act.plan) return;
+  for(let guard = 0; guard < 40 && !act.plan.done; guard++){
+    const p = act.plan, ph = p.phases[p.idx], left = ph.dur*1000 - (elapsedNow() - p.t0);
+    if(left <= 0){ advancePhase(false); continue; }
+    const s = Math.ceil(left/1000);
+    if(s <= 3 && p.lastTick !== s){ p.lastTick = s; beep(660, 90); }
+    break;
+  }
+}
+function renderPlan(){
+  const chip = $('#planChip'), bar = $('#planBar');
+  chip.hidden = !(pendingPlan && !act);
+  if(!chip.hidden) $('#planChipTxt').textContent = `Plan: ${pendingPlan.name} — press Start to begin the warm-up`;
+  const p = act && act.plan;
+  bar.hidden = !p;
+  if(!p) return;
+  if(p.done){
+    bar.className = 'plan'; $('#plLabel').textContent = 'Session complete'; $('#plTime').textContent = '✓';
+    $('#plTarget').textContent = 'Jog or walk, then Finish'; return;
+  }
+  const ph = p.phases[p.idx], nx = p.phases[p.idx + 1];
+  const left = Math.max(0, ph.dur*1000 - (elapsedNow() - p.t0));
+  bar.className = 'plan ' + ph.kind;
+  $('#plLabel').textContent = ph.label;
+  $('#plTime').textContent = fmtTime(Math.ceil(left/1000)*1000);
+  $('#plTarget').innerHTML = (ph.lo ? `Target <b>${(ph.lo*3.6).toFixed(1)}–${(ph.hi*3.6).toFixed(1)}</b> km/h<br>` : '') +
+    (nx ? `Next: ${nx.label}${nx.lo ? ` @ ${(nx.lo*3.6).toFixed(1)}–${(nx.hi*3.6).toFixed(1)}` : ''}` : 'Last phase');
+}
+$('#planClear').onclick = () => { pendingPlan = null; renderPlan(); };
 function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 function lap(){
   const ms = elapsedNow(), time = ms - act.lapT0, dist = act.dist - act.lapD0;
   if(time < 2000) return;
-  act.laps.push({ time, dist });
+  act.laps.push({ time, dist, label: `Lap ${act.laps.length + 1}` });
   act.lapT0 = ms; act.lapD0 = act.dist;
   buzz(40); saveDraft(); render();
 }
@@ -305,6 +447,11 @@ document.addEventListener('visibilitychange', () => {
 function start(){
   if(!me) toast('No GPS fix yet — your route starts once it locks on.');
   act = { type, segs:[[]], dist:0, gain:0, refAlt:null, elapsed:0, tickAt:Date.now(), status:'running', startedAt:Date.now(), laps:[], lapT0:0, lapD0:0 };
+  if(pendingPlan){
+    act.type = 'Interval';
+    act.plan = { name: pendingPlan.name, phases: pendingPlan.phases, idx:0, t0:0, done:false, lastTick:-1 };
+    pendingPlan = null; cue('rest');   // the first beep also unlocks audio, which browsers only allow after a tap
+  }
   buzz(60); lockScreen(); saveDraft(); render();
 }
 function pause(){
@@ -313,6 +460,7 @@ function pause(){
 }
 function resume(){
   act.tickAt = Date.now(); act.status = 'running'; act.segs.push([]);
+  beep(1, 1);   // wake the audio context from this tap so phase beeps keep working
   lockScreen(); saveDraft(); render();
 }
 function finish(){
@@ -325,8 +473,11 @@ function finish(){
   }
   const list = store.get('trackr.acts', []);
   const laps = act.laps.slice();
-  if(laps.length && act.elapsed - act.lapT0 > 2000) laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0 });
-  list.unshift({ id: String(act.startedAt), type: act.type, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps });
+  if(laps.length && act.elapsed - act.lapT0 > 2000){
+    const ph = curPhase();
+    laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0, label: ph ? ph.label : `Lap ${laps.length + 1}`, kind: ph ? ph.kind : undefined });
+  }
+  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps });
   store.set('trackr.acts', list);
   act = null; store.del('trackr.draft');
   protectStorage();   // retry now that the user has engaged with the app
@@ -362,7 +513,13 @@ function renderSpeed(){
   const v = shownSpeed();
   $('#curSpd').textContent = v == null ? '--' : (v*3.6).toFixed(1);
   $('#curPace').textContent = v == null || v < 0.8 ? '--' : fmtPaceSec(1000/v);
-  $('#curBox').classList.toggle('moving', v != null && v >= 0.8);
+  const box = $('#curBox'), ph = curPhase();
+  box.classList.toggle('moving', v != null && v >= 0.8);
+  // during a work phase, colour the speed against the target band (after an 8 s grace to get up to speed)
+  let st = '';
+  if(ph && ph.lo && act.status === 'running' && v != null && elapsedNow() - act.plan.t0 > 8000)
+    st = v < ph.lo*0.97 ? 'low' : v > ph.hi*1.03 ? 'high' : 'ok';
+  ['ok','low','high'].forEach(c => box.classList.toggle(c, st === c));
 }
 function drawSpark(){
   const cv = $('#spark'); if(!cv.clientWidth) return;
@@ -430,7 +587,7 @@ setInterval(() => {
   const v = shownSpeed(), now = Date.now();
   samples.push({ t: now, v: v || 0 });
   while(samples.length && now - samples[0].t > 120000) samples.shift();
-  renderSpeed(); drawSpark();
+  planTick(); renderSpeed(); drawSpark();
   if(act && act.status === 'running') render();
 }, 1000);
 
@@ -454,7 +611,7 @@ function renderList(){
   list.forEach(a => {
     const b = document.createElement('button'); b.className = 'card';
     const ride = isRide(a.type);
-    b.innerHTML = `<div class="t">${a.type}</div><div class="d">${fmtDate(a.date)}</div>
+    b.innerHTML = `<div class="t">${a.type}${a.plan ? ' · ' + a.plan : ''}</div><div class="d">${fmtDate(a.date)}</div>
       <div class="row">
         <div><b>${(a.dist/1000).toFixed(2)}</b><span>km</span></div>
         <div><b>${fmtTime(a.time)}</b><span>time</span></div>
@@ -481,14 +638,14 @@ function openDetail(id){
   }
   setTimeout(() => { dmap.invalidateSize(); if(lines.length) dmap.fitBounds(L.latLngBounds(lines.flat()), {padding:[30,30]}); }, 50);
   const ride = isRide(a.type);
-  $('#dTitle').textContent = a.type;
+  $('#dTitle').textContent = a.type + (a.plan ? ' · ' + a.plan : '');
   $('#dDate').textContent = fmtDate(a.date);
   $('#dStats').innerHTML =
     statHtml((a.dist/1000).toFixed(2) + ' km', 'Distance') + statHtml(fmtTime(a.time), 'Time') +
     statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' /km', ride ? 'Avg speed' : 'Avg pace') +
     statHtml(Math.round(a.gain) + ' m', 'Elev gain');
   $('#dLaps').innerHTML = (a.laps || []).map((l, i) =>
-    `<div class="lapt"><b>Lap ${i+1}</b><span>${fmtTime(l.time)}</span><span>${(l.dist/1000).toFixed(2)} km</span><span>${fmtSpeed(l.time, l.dist)} km/h</span><span>${fmtPace(l.time, l.dist)}/km</span></div>`).join('');
+    `<div class="lapt ${l.kind === 'work' ? 'work' : ''}"><b>${l.label || 'Lap ' + (i+1)}</b><span>${fmtTime(l.time)}</span><span>${(l.dist/1000).toFixed(2)} km</span><span>${fmtSpeed(l.time, l.dist)} km/h</span><span>${fmtPace(l.time, l.dist)}/km</span></div>`).join('');
 }
 $('#dBack').onclick = () => $('#detail').classList.remove('on');
 $('#dDel').onclick = () => {
@@ -512,6 +669,185 @@ $('#dGpx').onclick = () => {
   document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
+/* ---------- VO2max: estimate from best efforts, log readings, derive target speeds ---------- */
+// Daniels/Gilbert: oxygen cost of running at v (m/min), and the fraction of VO2max sustainable for t minutes.
+const o2cost = v => -4.60 + 0.182258*v + 0.000104*v*v;
+function vdotOf(distM, min){
+  const pct = 0.8 + 0.1894393*Math.exp(-0.012778*min) + 0.2989558*Math.exp(-0.1932605*min);
+  return o2cost(distM/min)/pct;
+}
+function velAtVo2(vo2){   // m/s at which running costs `vo2` ml/kg/min
+  const a = 0.000104, b = 0.182258, c = -4.60 - vo2;
+  return (-b + Math.sqrt(b*b - 4*a*c))/(2*a)/60;
+}
+const EFFORT_MIN = [5, 8, 12, 20, 30];  // best-effort windows, minutes
+const GLITCH_SPEED = 9;                  // m/s: a step faster than this is a GPS jump, not running
+const MAX_VDOT = 85;                     // above the world record means bad data
+const effMemo = {};
+function bestVdot(a){
+  if(/walk/i.test(a.type)) return null;
+  const key = a.id + ':' + a.segs.reduce((n, s) => n + s.length, 0);
+  if(key in effMemo) return effMemo[key];
+  let best = 0;
+  for(const s of a.segs){
+    const n = s.length; if(n < 3) continue;
+    const cum = new Float64Array(n), ts = new Float64Array(n), bad = new Int32Array(n + 1);
+    for(let i = 0; i < n; i++){
+      ts[i] = s[i][3]/1000; let isBad = 0;
+      if(i){ cum[i] = cum[i-1] + hav(s[i-1], s[i]); const dt = ts[i] - ts[i-1]; if(dt > 0 && (cum[i] - cum[i-1])/dt > GLITCH_SPEED) isBad = 1; }
+      bad[i+1] = bad[i] + isBad;
+    }
+    const idxAt = t => { let lo = 0, hi = n - 1; while(lo < hi){ const m = (lo + hi + 1) >> 1; if(ts[m] <= t) lo = m; else hi = m - 1; } return lo; };
+    const D = t => { const j = idxAt(t); if(j >= n - 1) return cum[n-1]; const f = ts[j+1] > ts[j] ? (t - ts[j])/(ts[j+1] - ts[j]) : 0; return cum[j] + f*(cum[j+1] - cum[j]); };
+    for(const m of EFFORT_MIN){
+      const dur = m*60; if(ts[n-1] - ts[0] < dur) continue;
+      const starts = []; for(let i = 0; i < n; i++){ starts.push(ts[i]); if(ts[i] - dur >= ts[0]) starts.push(ts[i] - dur); }
+      for(const st of starts){
+        if(st + dur > ts[n-1] || st < ts[0]) continue;
+        const i0 = idxAt(st), i1 = Math.min(idxAt(st + dur) + 1, n - 1);
+        if(bad[i1 + 1] - bad[i0 + 1]) continue;
+        const v = vdotOf(D(st + dur) - D(st), m);
+        if(v <= MAX_VDOT && v > best) best = v;
+      }
+    }
+  }
+  return (effMemo[key] = best || null);
+}
+const DAY = 86400000;
+function vo2Estimates(){
+  const acts = store.get('trackr.acts', []), months = {}, now = Date.now();
+  let recent = null, peak = null;
+  acts.forEach(a => {
+    const v = bestVdot(a); if(!v) return;
+    const d = new Date(a.date), k = d.getFullYear()*12 + d.getMonth();
+    if(!months[k] || v > months[k].v) months[k] = { t: new Date(d.getFullYear(), d.getMonth(), 15).getTime(), v };
+    if(a.date >= now - 90*DAY && (!recent || v > recent.v)) recent = { v, t: a.date };
+    if(!peak || v > peak.v) peak = { v, t: a.date };
+  });
+  return { months: Object.values(months).sort((a, b) => a.t - b.t), recent, peak };
+}
+const loggedReadings = () => store.get('trackr.vo2', []).slice().sort((a, b) => b.date - a.date);
+function reference(est){
+  const lg = loggedReadings()[0], pref = store.get('trackr.ref', lg ? 'log' : 'est');
+  if(pref === 'log' && lg) return { v: lg.value, kind: 'log', label: `your logged ${lg.value.toFixed(1)} (${lg.source})` };
+  if(est.recent) return { v: est.recent.v, kind: 'est', label: `the ${est.recent.v.toFixed(1)} estimated from your last 90 days` };
+  if(lg) return { v: lg.value, kind: 'log', label: `your logged ${lg.value.toFixed(1)} (${lg.source})` };
+  return null;
+}
+// zones as a share of the speed at VO2max (vVO2max)
+const ZONES = [
+  ['Easy / long run', .65, .78], ['Steady pace', .80, .87], ['Threshold', .88, .93],
+  ['VO2max intervals', .95, 1.00], ['Speed reps', 1.02, 1.12]
+];
+const PRESETS = [
+  { name:'Norwegian 4×4', reps:4,  work:240, rest:180, lo:.88, hi:.94 },
+  { name:'5 × 3 min',      reps:5,  work:180, rest:150, lo:.93, hi:.99 },
+  { name:'6 × 2 min',      reps:6,  work:120, rest:120, lo:.97, hi:1.03 },
+  { name:'30/30 × 16',     reps:16, work:30,  rest:30,  lo:1.00, hi:1.08 },
+  { name:'8 × 1 min',      reps:8,  work:60,  rest:90,  lo:1.04, hi:1.12 }
+];
+const fmtDur = s => s % 60 ? `${Math.floor(s/60)}:${String(s % 60).padStart(2,'0')}` : `${s/60}:00`;
+function buildPlan(p, vv){
+  const ph = [{ kind:'warm', dur:600, label:'Warm-up' }];
+  for(let i = 1; i <= p.reps; i++){
+    ph.push({ kind:'work', dur:p.work, label:`Work ${i}/${p.reps}`, lo: vv*p.lo, hi: vv*p.hi });
+    if(i < p.reps) ph.push({ kind:'rest', dur:p.rest, label:`Rest ${i}/${p.reps}` });
+  }
+  ph.push({ kind:'cool', dur:300, label:'Cool-down' });
+  return { name: p.name, phases: ph };
+}
+function startPlan(p){
+  if(act){ toast('Finish the current activity first.'); return; }
+  const ref = reference(vo2Estimates());
+  if(!ref){ toast('Log a VO2max reading first (or record a few runs).'); return; }
+  pendingPlan = buildPlan(p, velAtVo2(ref.v));
+  type = 'Interval';
+  document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
+  showTab('rec'); render();
+  toast(`${p.name} ready — press Start`);
+}
+function fmtMonthYear(t){ return new Date(t).toLocaleDateString(undefined, { month:'short', year:'numeric' }); }
+function renderTrain(){
+  const est = vo2Estimates(), lg = loggedReadings(), ref = reference(est);
+  $('#vEst').textContent = est.recent ? est.recent.v.toFixed(1) : (lg[0] ? lg[0].value.toFixed(1) : '--');
+  $('#vSub').textContent = est.recent
+    ? `estimated from your best effort in the last 90 days · peak ${est.peak.v.toFixed(1)} (${fmtMonthYear(est.peak.t)})`
+    : est.peak ? `no hard efforts in the last 90 days · your peak was ${est.peak.v.toFixed(1)} (${fmtMonthYear(est.peak.t)})`
+    : 'Record some runs, or log a reading, to start.';
+  $('#vLegend').innerHTML = (est.months.length ? '<span style="color:var(--accent)">●</span> monthly best effort estimate ' : '') + (lg.length ? ' <span style="color:#2563eb">●</span> your logged readings' : '');
+  $('#vList').innerHTML = lg.slice(0, 4).map(r =>
+    `<div class="vlog"><span><b>${r.value.toFixed(1)}</b> · ${r.source} · ${new Date(r.date).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</span><button data-del="${r.id}" aria-label="Delete reading">×</button></div>`).join('');
+  drawVChart(est.months, lg);
+
+  const seg = $('#refSeg').children;
+  const pref = ref ? ref.kind : null;
+  seg[0].classList.toggle('on', pref === 'est'); seg[1].classList.toggle('on', pref === 'log');
+  seg[0].disabled = !est.recent; seg[1].disabled = !lg.length;
+  const z = $('#zones'), s = $('#sessions');
+  if(!ref){
+    $('#refNote').textContent = '';
+    z.innerHTML = s.innerHTML = '<div class="vsub">Needs a VO2max value first.</div>';
+  } else {
+    const vv = velAtVo2(ref.v);
+    $('#refNote').textContent = `Based on ${ref.label}. Speed at VO2max: ${(vv*3.6).toFixed(1)} km/h (${fmtPaceSec(1000/vv)} /km).`;
+    const rng = (lo, hi) => [`${(vv*lo*3.6).toFixed(1)}–${(vv*hi*3.6).toFixed(1)} km/h`, `${fmtPaceSec(1000/(vv*lo))}–${fmtPaceSec(1000/(vv*hi))} /km`];
+    z.innerHTML = ZONES.map(([n, lo, hi]) => { const [a, b] = rng(lo, hi); return `<div class="zone"><span>${n}<small>${Math.round(lo*100)}–${Math.round(hi*100)}% of VO2max speed</small></span><span class="r">${a}<small style="display:block">${b}</small></span></div>`; }).join('');
+    s.innerHTML = PRESETS.map((p, i) => { const [a] = rng(p.lo, p.hi); return `<div class="sess"><span><b>${p.name}</b><small>${p.reps} × ${fmtDur(p.work)} @ ${a} · rest ${fmtDur(p.rest)}</small></span><button class="btn primary" data-p="${i}">Start</button></div>`; }).join('');
+  }
+  renderWeekly();
+}
+function drawVChart(months, logs){
+  const cv = $('#vchart'); if(!cv.clientWidth) return;
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const pts = months.map(m => ({ t: m.t, v: m.v })), lp = logs.map(r => ({ t: r.date, v: r.value }));
+  const all = pts.concat(lp); if(!all.length) return;
+  const css = getComputedStyle(document.documentElement), acc = css.getPropertyValue('--accent').trim(), mut = css.getPropertyValue('--muted').trim(), grid = css.getPropertyValue('--line').trim();
+  const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(Date.now(), ...all.map(p => p.t));
+  const vmin = Math.floor(Math.min(...all.map(p => p.v)) - 2), vmax = Math.ceil(Math.max(...all.map(p => p.v)) + 2);
+  const L0 = 30, R0 = 8, T0 = 8, B0 = 18;
+  const X = t => L0 + (t1 === t0 ? .5 : (t - t0)/(t1 - t0))*(w - L0 - R0), Y = v => T0 + (1 - (v - vmin)/(vmax - vmin))*(h - T0 - B0);
+  g.font = '11px system-ui,sans-serif'; g.fillStyle = mut; g.strokeStyle = grid; g.lineWidth = 1;
+  [vmin, (vmin + vmax)/2, vmax].forEach(v => { g.beginPath(); g.moveTo(L0, Y(v)); g.lineTo(w - R0, Y(v)); g.stroke(); g.fillText(String(Math.round(v)), 2, Y(v) + 4); });
+  g.textAlign = 'left'; g.fillText(String(new Date(t0).getFullYear()), L0, h - 3);
+  g.textAlign = 'right'; g.fillText(String(new Date(t1).getFullYear()), w - R0, h - 3);
+  if(pts.length > 1){ g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p.t), Y(p.v)) : g.moveTo(X(p.t), Y(p.v))); g.lineWidth = 2; g.strokeStyle = acc; g.lineJoin = 'round'; g.stroke(); }
+  g.fillStyle = acc; pts.forEach(p => { g.beginPath(); g.arc(X(p.t), Y(p.v), pts.length > 40 ? 1.8 : 3, 0, 7); g.fill(); });
+  g.fillStyle = '#2563eb'; lp.forEach(p => { g.beginPath(); g.arc(X(p.t), Y(p.v), 5, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.stroke(); });
+}
+function renderWeekly(){
+  const acts = store.get('trackr.acts', []), now = new Date();
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7)).getTime();
+  const weeks = [];
+  for(let i = 7; i >= 0; i--){
+    const a = mon - i*7*DAY, b = a + 7*DAY;
+    weeks.push({ a, km: acts.filter(x => x.date >= a && x.date < b).reduce((s, x) => s + x.dist, 0)/1000 });
+  }
+  const max = Math.max(10, ...weeks.map(w => w.km));
+  $('#wk').innerHTML = weeks.map(w => `<div><span>${w.km ? w.km.toFixed(0) : ''}</span><i style="height:${Math.max(2, w.km/max*70)}px"></i><span>${new Date(w.a).getDate()}/${new Date(w.a).getMonth() + 1}</span></div>`).join('');
+}
+$('#sessions').onclick = e => { const b = e.target.closest('button[data-p]'); if(b) startPlan(PRESETS[+b.dataset.p]); };
+$('#cGo').onclick = () => {
+  const n = id => parseFloat($(id).value);
+  const reps = Math.round(n('#cReps')), work = n('#cWork')*60, rest = n('#cRest')*60, lo = n('#cLo')/100, hi = n('#cHi')/100;
+  if(!(reps >= 1 && reps <= 30 && work >= 15 && rest >= 0 && lo > .5 && hi >= lo && hi < 1.4)){ toast('Check the custom session numbers.'); return; }
+  startPlan({ name: `${reps} × ${fmtDur(Math.round(work))} custom`, reps, work: Math.round(work), rest: Math.round(rest), lo, hi });
+};
+$('#refSeg').onclick = e => { const b = e.target.closest('button[data-ref]'); if(b && !b.disabled){ store.set('trackr.ref', b.dataset.ref); renderTrain(); } };
+$('#vAdd').onclick = () => {
+  const v = parseFloat($('#vIn').value);
+  if(!(v >= 10 && v <= 95)){ toast('Enter a VO2max between 10 and 95.'); return; }
+  const list = store.get('trackr.vo2', []);
+  list.push({ id: 'v' + Date.now(), date: Date.now(), value: v, source: $('#vSrc').value });
+  store.set('trackr.vo2', list); store.set('trackr.ref', 'log'); $('#vIn').value = '';
+  renderTrain(); toast('Reading logged');
+};
+$('#vList').onclick = e => {
+  const b = e.target.closest('button[data-del]'); if(!b) return;
+  store.set('trackr.vo2', store.get('trackr.vo2', []).filter(r => r.id !== b.dataset.del)); renderTrain();
+};
+
 /* ---------- persistence + backup ---------- */
 async function protectStorage(){
   let msg = 'Your browser may clear this data. Back up regularly.';
@@ -530,9 +866,9 @@ function download(name, text, mime){
   document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 $('#expAll').onclick = () => {
-  const acts = store.get('trackr.acts', []);
-  if(!acts.length){ toast('Nothing to back up yet.'); return; }
-  download(`trackr-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({ app:'trackr', version:1, activities:acts }), 'application/json');
+  const acts = store.get('trackr.acts', []), vo2 = store.get('trackr.vo2', []);
+  if(!acts.length && !vo2.length){ toast('Nothing to back up yet.'); return; }
+  download(`trackr-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({ app:'trackr', version:2, activities:acts, vo2 }), 'application/json');
 };
 $('#impAll').onclick = () => $('#impFile').click();
 $('#impFile').onchange = async e => {
@@ -541,23 +877,33 @@ $('#impFile').onchange = async e => {
     const data = JSON.parse(await f.text());
     const incoming = (data && data.app === 'trackr' && Array.isArray(data.activities) ? data.activities : [])
       .filter(a => a && a.id && Array.isArray(a.segs) && isFinite(a.dist) && isFinite(a.time) && isFinite(a.date));
-    if(!incoming.length){ toast('That file has no Trackr activities.'); return; }
+    const readings = (data && data.app === 'trackr' && Array.isArray(data.vo2) ? data.vo2 : [])
+      .filter(r => r && r.id && isFinite(r.value) && isFinite(r.date));
+    if(!incoming.length && !readings.length){ toast('That file has no Trackr data.'); return; }
     const have = store.get('trackr.acts', []), ids = new Set(have.map(a => a.id));
     const fresh = incoming.filter(a => !ids.has(a.id));
     store.set('trackr.acts', have.concat(fresh).sort((a, b) => b.date - a.date));
-    renderList(); toast(`Restored ${fresh.length} activit${fresh.length === 1 ? 'y' : 'ies'}.`);
+    const haveV = store.get('trackr.vo2', []), vids = new Set(haveV.map(r => r.id));
+    const freshV = readings.filter(r => !vids.has(r.id));
+    if(freshV.length) store.set('trackr.vo2', haveV.concat(freshV));
+    renderList();
+    toast(`Restored ${fresh.length} activit${fresh.length === 1 ? 'y' : 'ies'}${freshV.length ? ` and ${freshV.length} VO2max reading${freshV.length === 1 ? '' : 's'}` : ''}.`);
   }catch(err){ toast('Could not read that backup file.'); }
 };
 
 /* ---------- tabs ---------- */
 function showTab(t){
   $('#recView').classList.toggle('on', t === 'rec');
+  $('#trainView').classList.toggle('on', t === 'train');
   $('#actView').classList.toggle('on', t === 'act');
   $('#tabRec').classList.toggle('on', t === 'rec');
+  $('#tabTrain').classList.toggle('on', t === 'train');
   $('#tabAct').classList.toggle('on', t === 'act');
   if(t === 'rec') setTimeout(() => map.invalidateSize(), 50);
+  else if(t === 'train') renderTrain();
   else renderList();
 }
+$('#tabTrain').onclick = () => showTab('train');
 $('#tabRec').onclick = () => showTab('rec');
 $('#tabAct').onclick = () => showTab('act');
 

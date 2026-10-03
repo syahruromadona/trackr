@@ -1,1 +1,4 @@
 .claude/
+trackr-import.json
+*.json.bak
+test.html

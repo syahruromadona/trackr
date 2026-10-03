@@ -9,3 +9,12 @@ A Strava-style run/ride/walk recorder that runs in the phone browser (installabl
 
 Geolocation needs HTTPS (or localhost), so serve it from GitHub Pages / Netlify and open it on your phone, then "Add to Home Screen".
 Keep the screen on while recording — browsers pause GPS when the page is backgrounded.
+
+## VO2max training
+
+- **Train** tab: estimated VO2max from your best 5-30 min efforts (Daniels/Gilbert formula, GPS glitches filtered), monthly trend, your own logged readings (watch / lab / Cooper test)
+- Target speeds per zone derived from the speed at VO2max
+- Structured sessions (Norwegian 4x4, 5x3, 6x2, 30/30, 8x1, custom): warm-up, timed work/rest phases with beeps and vibration, live speed coloured against the target band, automatic laps per phase
+- Weekly distance
+- Back up all / Restore includes activities and VO2max readings
+
