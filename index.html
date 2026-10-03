@@ -109,6 +109,7 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
     <div class="mapwrap">
       <div id="map"></div>
       <button class="followbtn" id="followBtn" aria-pressed="true">Following</button>
+      <button class="followbtn layerbtn" aria-pressed="false" style="right:auto;left:12px">Satellite</button>
     </div>
     <div class="sheet">
       <div class="types" id="types" role="group" aria-label="Activity type">
@@ -125,7 +126,10 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
   </section>
 
   <div id="detail">
-    <div id="dmap"></div>
+    <div style="position:relative;flex:1;min-height:0;display:flex">
+      <div id="dmap" style="flex:1"></div>
+      <button class="followbtn layerbtn" aria-pressed="false">Satellite</button>
+    </div>
     <div class="sheet">
       <div class="t" id="dTitle" style="font-weight:700;font-size:18px"></div>
       <div class="d" id="dDate" style="color:var(--muted);font-size:13px;margin-bottom:10px"></div>
@@ -189,10 +193,25 @@ function toast(msg){
   const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
   document.body.appendChild(el); setTimeout(() => el.remove(), 3200);
 }
+const baseMaps = [];   // one entry per Leaflet map: {map, street, sat}
+let satellite = store.get('trackr.sat', false) === true;
 function tile(map){
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const street = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  });
+  const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics'
+  });
+  baseMaps.push({ map, street, sat });
+  (satellite ? sat : street).addTo(map);
+}
+function setSatellite(v){
+  satellite = v; store.set('trackr.sat', v);
+  baseMaps.forEach(b => {
+    b.map.removeLayer(v ? b.street : b.sat);
+    (v ? b.sat : b.street).addTo(b.map);
+  });
+  document.querySelectorAll('.layerbtn').forEach(b => { b.textContent = v ? 'Map' : 'Satellite'; b.setAttribute('aria-pressed', String(v)); });
 }
 
 /* ---------- map ---------- */
@@ -208,7 +227,11 @@ function setFollow(v){
   b.textContent = v ? 'Following' : 'Re-centre';
   b.setAttribute('aria-pressed', String(v));
 }
-$('#followBtn').onclick = () => { setFollow(true); if(me) map.setView(me, Math.max(map.getZoom(), 16)); };
+document.querySelectorAll('.layerbtn').forEach(b => {
+  b.onclick = () => setSatellite(!satellite);
+  b.textContent = satellite ? 'Map' : 'Satellite';
+});
+$('#followBtn').onclick =() => { setFollow(true); if(me) map.setView(me, Math.max(map.getZoom(), 16)); };
 
 /* ---------- activity state ---------- */
 let act = null;            // {type, segs:[[ [lat,lon,alt,t] ]], dist, gain, refAlt, elapsed, tickAt, status, startedAt}
