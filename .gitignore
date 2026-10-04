@@ -2,3 +2,4 @@
 trackr-import.json
 *.json.bak
 test.html
+trackr-backup-*.json

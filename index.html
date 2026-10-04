@@ -554,7 +554,7 @@ function finish(){
     laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0, label: ph ? ph.label : `Lap ${laps.length + 1}`, kind: ph ? ph.kind : undefined, dur: ph ? ph.dur*1000 : undefined });
   }
   const coach = coachResult(laps);
-  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps, prof: profileFromSpeed(act.sp || []) || makeProfile(act.segs), cad: cadProfile(act.cad || []) });
+  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps, prof: makeProfile(act.segs) || profileFromSpeed(act.sp || []), dop: profileFromSpeed(act.sp || []), cad: cadProfile(act.cad || []) });
   if(coach && coach.kind === 'test' && coach.testDist){
     const v = (coach.testDist - 504.9)/44.73;   // Cooper 12-minute formula
     if(v >= 10 && v <= 95){
@@ -625,6 +625,8 @@ function drawSpark(){
 window.addEventListener('resize', drawSpark);
 
 /* ---------- speed profile from the phone's own speed, and cadence from the motion sensor ---------- */
+// The speed profile (`prof`) comes from position change, the same way Strava's files are read, so recordings and history compare like for like.
+// The phone's own speed reading is kept beside it (`dop`) for comparison: in a Cooper test it read 5-10% lower than position speed while running.
 // sp = [[deciseconds since start, km/h x 10], ...] recorded at every GPS fix. Averaged over 10 s of moving time.
 function profileFromSpeed(sp){
   const v = []; let accT = 0, accW = 0;
@@ -831,6 +833,11 @@ function renderDetailChart(a){
     html += summary('Fast parts found in this run', det.reps);
     html += det.reps.slice(0, 12).map((r, i) => `<div class="lapt"><b>Rep ${i + 1}</b><span>at ${fmtTime(r.t*1000)}</span><span>${r.dur} s</span><span>${Math.round(r.dist)} m</span><span>${(r.v*3.6).toFixed(1)} km/h</span></div>`).join('');
     html += '<div style="margin-top:4px">Found from your speed (not recorded as laps), so treat the edges as approximate.</div>';
+  }
+  // how the phone's own speed reading compares with position-based speed (to judge which to trust)
+  if(a.dop && a.dop.v && a.dop.v.length >= 6){
+    const n = Math.min(a.dop.v.length, p.v.length), sd = a.dop.v.slice(0, n).reduce((s, x) => s + x, 0), sp = p.v.slice(0, n).reduce((s, x) => s + x, 0);
+    if(sp > 0){ const r = (sd/sp - 1)*100; html += `<div class="vsub" style="margin-top:6px">The phone's own speed reading averages ${Math.abs(r).toFixed(0)}% ${r < 0 ? 'lower' : 'higher'} than the position-based speed used here.</div>`; }
   }
   // cadence (steps per minute), if the motion sensor recorded it: whole run, and fast parts against the rest
   if(a.cad && a.cad.v){
@@ -1891,6 +1898,19 @@ $('#tabToday').onclick = () => showTab('today');
 $('#tabTrain').onclick = () => showTab('train');
 $('#tabRec').onclick = () => showTab('rec');
 $('#tabAct').onclick = () => showTab('act');
+
+/* ---------- repair recordings made while the profile used the phone's own speed ---------- */
+// Between the Doppler change and its reversal, recordings stored the phone-speed profile in `prof`. Rebuild `prof` from positions and keep the old one as `dop`.
+(function repairProfiles(){
+  const DOP_FROM = 1791023504000;   // 3 Oct 2026 18:31 MYT, when the Doppler profile went live
+  const list = store.get('trackr.acts', []); let n = 0;
+  list.forEach(a => {
+    if(/^\d+$/.test(a.id) && !a.dop && a.date >= DOP_FROM && a.prof && a.segs){
+      const p = makeProfile(a.segs); if(p){ a.dop = a.prof; a.prof = p; n++; }
+    }
+  });
+  if(n) store.set('trackr.acts', list);
+})();
 
 /* ---------- restore an unfinished recording ---------- */
 const draft = store.get('trackr.draft', null);
