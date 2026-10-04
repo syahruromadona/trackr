@@ -51,3 +51,11 @@ The app opens on **Today**: a briefing that reads your history and tells you wha
 - Every fix keeps the phone's exact timestamp (milliseconds), so recordings do not have the 1 s / 2 s timestamp rounding seen in Strava's GPX files
 - Cadence (steps per minute) is read from the motion sensor while recording and shown live and on the saved activity (whole run, fast parts vs the rest). Best with the phone in an armband, pocket or waistband; iPhone asks for motion permission once
 - The in-progress draft is written at most every 3 s (and whenever the page is hidden) to keep long recordings light
+
+## Recording flow and weekly review
+
+- The Record screen says plainly whether anything is being recorded: "Not recording" until Start, "Recording" with a pulsing dot, "Paused"
+- A coached plan can skip its warm-up ("Already warmed up") so the main part starts the moment you press Start
+- Finish is always available while recording (with a confirmation), next to Lap/Next and Pause
+- After a session the Today card explains the result in plain words; after the 12-minute test it shows distance, VO2max, where that puts you, 3-minute pace splits and what changes in your targets
+- **Weekly review with Claude** (Today tab): one tap copies a plain-text summary (last 4 weeks, VO2max, bests, last 10 sessions, today's plan, three reflection questions, optional one-line goal) to paste into Claude. No locations or names

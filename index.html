@@ -140,6 +140,17 @@ details.panel summary{cursor:pointer;font-weight:700}
 .repsum{color:var(--ink);font-size:14px;margin-bottom:6px}.repsum b{color:var(--accent)}
 .vlog{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:4px 0;font-variant-numeric:tabular-nums}
 .vlog button{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 8px}
+.recstate{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px;color:var(--muted)}
+.recstate i{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.recstate.rec{color:var(--ink)}.recstate.rec i{background:var(--danger);animation:pulse 1.2s infinite}
+.recstate.pause i{background:#f59e0b}
+@keyframes pulse{50%{opacity:.3}}
+#controls{flex-wrap:wrap}
+.btn.fin{flex-basis:100%;min-height:44px;font-size:15px;font-weight:600;background:transparent;border:1px solid var(--danger);color:var(--danger)}
+.mini{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.planchip{flex-wrap:wrap}
+.why-p{margin:8px 0 0;font-size:14px;line-height:1.45}
+.sumbox{width:100%;height:160px;margin-top:10px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px;font:12px/1.4 ui-monospace,Consolas,monospace;user-select:text}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:3000;max-width:90vw;text-align:center}
 </style>
 </head>
@@ -154,6 +165,12 @@ details.panel summary{cursor:pointer;font-weight:700}
     <div class="panel" id="tHead"></div>
     <div class="panel" id="tSession"></div>
     <div class="panel" id="tLast" hidden></div>
+    <div class="panel" id="tReview">
+      <h2>Weekly review with Claude</h2>
+      <div class="vsub">Copies your last four weeks, your VO2max, your recent sessions and today's plan, with three reflection questions. Paste it into Claude to get a coach's review and a plan for next week. It has no locations or names.</div>
+      <div class="controls" style="margin-top:10px"><button class="btn primary" id="sumCopy" style="min-height:48px;font-size:16px">Copy my training summary</button></div>
+      <textarea class="sumbox" id="sumBox" hidden readonly aria-label="Training summary"></textarea>
+    </div>
     <div class="panel" id="tLog">
       <h2>Log other activity</h2>
       <div class="vsub">Gym sessions and walks you don't record with GPS still count towards your week.</div>
@@ -177,6 +194,7 @@ details.panel summary{cursor:pointer;font-weight:700}
         <label>Birth date<input id="pBirth" type="date" style="width:150px"></label>
         <label>Sex<select id="pSex"><option value="">Choose</option><option value="M">Male</option><option value="F">Female</option></select></label>
       </div>
+      <div class="fld"><label style="flex:1">My goal, in one line (goes into the weekly summary)<input id="pGoal" type="text" maxlength="140" style="width:100%" placeholder="e.g. keep getting fitter for the sake of it"></label></div>
     </details>
   </section>
 
@@ -192,7 +210,7 @@ details.panel summary{cursor:pointer;font-weight:700}
       <div class="stat"><div class="v" id="sDist">0.00</div><div class="l">km</div></div>
       <div class="stat"><div class="v" id="sPace">--</div><div class="l" id="sPaceL">Avg /km</div></div>
     </div>
-    <div class="planchip" id="planChip" hidden><span id="planChipTxt"></span><button id="planClear" aria-label="Clear plan">×</button></div>
+    <div class="planchip" id="planChip" hidden><span id="planChipTxt"></span><button id="planWarm" class="mini" hidden></button><button id="planClear" aria-label="Clear plan">×</button></div>
     <div class="plan" id="planBar" hidden>
       <div><div class="pl" id="plLabel"></div><div class="pt" id="plTime"></div></div>
       <div class="pr" id="plTarget"></div>
@@ -207,6 +225,7 @@ details.panel summary{cursor:pointer;font-weight:700}
       <button class="followbtn layerbtn" aria-pressed="false" style="right:auto;left:12px">Satellite</button>
     </div>
     <div class="sheet">
+      <div class="recstate" id="recState"></div>
       <div class="types" id="types" role="group" aria-label="Activity type">
         <button data-type="Interval" class="on">Interval</button>
         <button data-type="Pace">Pace</button>
@@ -412,6 +431,17 @@ function render(){
   renderPlan();
   renderLap();
   renderControls();
+  renderState();
+}
+// Always say plainly whether anything is being recorded: the GPS and speed are live as soon as the app opens, but nothing is saved until Start.
+function renderState(){
+  const el = $('#recState'); if(!el) return;
+  let cls = '', txt;
+  if(!act) txt = 'Not recording. The speed above is live, but nothing is saved until you press Start.';
+  else if(act.status === 'running') { cls = 'rec'; txt = act.plan && act.plan.done ? 'Recording. Plan complete: press Finish to save.' : 'Recording. Press Finish when you are done.'; }
+  else { cls = 'pause'; txt = 'Paused. Resume to carry on, or Finish to save.'; }
+  el.className = 'recstate ' + cls; el.innerHTML = `<i></i><span>${txt}</span>`;
+  const hl = document.querySelector('.hero .hl'); if(hl) hl.textContent = act ? 'Current speed' : 'Current speed (live, not recording)';
 }
 function lapLine(label, ms, d){
   return `<b>${label}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtSpeed(ms, d)} km/h · ${fmtPace(ms, d)} /km`;
@@ -431,6 +461,7 @@ function renderControls(){
   else if(act.status === 'running'){
     if(act.plan && !act.plan.done) add('Next', 'primary lap', () => advancePhase(true)); else add('LAP', 'primary lap', lap);
     add('Pause', '', pause);
+    add('Finish', 'fin', () => { if(confirm('Finish and save this activity?')) finish(); });
   }
   else { add('Resume', 'primary', resume); add('Finish', 'danger', finish); }
 }
@@ -486,7 +517,14 @@ function planTick(){
 function renderPlan(){
   const chip = $('#planChip'), bar = $('#planBar');
   chip.hidden = !(pendingPlan && !act);
-  if(!chip.hidden) $('#planChipTxt').textContent = `Plan: ${pendingPlan.name} — press Start when you're ready`;
+  if(!chip.hidden){
+    const warm = pendingPlan.phases[0] && pendingPlan.phases[0].kind === 'warm' ? pendingPlan.phases[0] : null, wb = $('#planWarm');
+    $('#planChipTxt').textContent = warm
+      ? (pendingPlan.skipWarm ? `Plan: ${pendingPlan.name}. Warm-up skipped: the main part starts the moment you press Start.`
+                               : `Plan: ${pendingPlan.name}. Press Start to begin recording; it starts with a warm-up of ${fmtDur(warm.dur)}.`)
+      : `Plan: ${pendingPlan.name}. Press Start when you are ready.`;
+    wb.hidden = !warm; if(warm) wb.textContent = pendingPlan.skipWarm ? 'Include warm-up' : 'Already warmed up';
+  }
   const p = act && act.plan;
   bar.hidden = !p;
   if(!p) return;
@@ -503,6 +541,7 @@ function renderPlan(){
     (nx ? `Next: ${nx.label}${nx.lo ? ` @ ${(nx.lo*3.6).toFixed(1)}–${(nx.hi*3.6).toFixed(1)}` : ''}` : 'Last phase');
 }
 $('#planClear').onclick = () => { pendingPlan = null; renderPlan(); };
+$('#planWarm').onclick = () => { if(pendingPlan){ pendingPlan.skipWarm = !pendingPlan.skipWarm; renderPlan(); } };
 function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 function lap(){
   const ms = elapsedNow(), time = ms - act.lapT0, dist = act.dist - act.lapD0;
@@ -526,7 +565,10 @@ function start(){
   if(pendingPlan){
     act.type = pendingPlan.type || 'Interval';
     act.plan = { name: pendingPlan.name, phases: pendingPlan.phases, ckind: pendingPlan.ckind, level: pendingPlan.level, idx:0, t0:0, done:false, lastTick:-1 };
-    pendingPlan = null; cue('rest');   // the first beep also unlocks audio, which browsers only allow after a tap
+    // "Already warmed up": go straight to the main part so the warm-up is not recorded as a phase
+    if(pendingPlan.skipWarm && act.plan.phases[0].kind === 'warm'){ act.plan.idx = 1; act.plan.warmSkipped = true; }
+    cue(act.plan.idx ? act.plan.phases[act.plan.idx].kind : 'rest');   // the first beep also unlocks audio, which browsers only allow after a tap
+    pendingPlan = null;
   }
   buzz(60); lockScreen(); enableMotion(); saveDraft(true); render();
 }
@@ -1201,7 +1243,7 @@ const NEXT_HINT = {
   long: 'Next: a recovery day, then an easy jog.',
   easy: 'Next: a harder session once you have recovered.',
   comeback: 'Next: another easy jog, then we build.',
-  test: 'Next: the coach sets your targets from the result.'
+  test: 'Next: an easy run or a recovery day, then your first interval session with the numbers above.'
 };
 // Move up a level only if the last session of this kind was completed on target; repeat otherwise; step back after a long gap.
 function nextLevel(acts, kind, max){
@@ -1267,16 +1309,104 @@ function describePlan(plan){
   }
   return rows.map(r => `<div class="prow"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
 }
+// How a coached session went, in plain words.
 function coachNote(c){
   if(!c || !c.total) return '';
-  const unit = c.kind === 'interval' || c.kind === 'pace' ? 'reps' : 'block';
-  let s = `Coach: ${c.done}/${c.total} ${unit}${c.total > 1 && unit === 'block' ? 's' : ''} completed`;
-  if(c.lo && c.done){
-    const v = c.avg < c.lo*.97 ? 'below target' : c.avg > c.hi*1.03 ? (c.kind === 'easy' || c.kind === 'long' ? 'too fast, ease off next time' : 'above target') : 'on target';
-    s += ` · avg ${kmh(c.avg)} km/h vs ${band(c.lo, c.hi)} → ${v}`;
+  const verdict = () => !c.lo || !c.done ? '' : c.avg < c.lo*.97 ? 'a bit slower than the target' : c.avg > c.hi*1.03 ? (c.kind === 'easy' || c.kind === 'long' ? 'faster than easy, so ease off next time' : 'faster than the target') : 'right on target';
+  if(c.kind === 'test') return c.testDist ? `12-minute test: ${Math.round(c.testDist)} m, which gives a VO2max of ${((c.testDist - 504.9)/44.73).toFixed(1)}` : 'The 12-minute test was not completed, so no VO2max was recorded';
+  if(c.kind === 'interval' || c.kind === 'pace'){
+    let s = `${c.done} of ${c.total} reps completed`;
+    if(c.lo && c.done) s += `. Average speed in the reps ${kmh(c.avg)} km/h (target ${band(c.lo, c.hi)}), ${verdict()}`;
+    return s;
   }
-  if(c.testDist) s += ` · ${Math.round(c.testDist)} m → VO2max ${((c.testDist - 504.9)/44.73).toFixed(1)}`;
+  let s = c.done ? 'Steady run completed' : 'Steady run not completed';
+  if(c.lo && c.done) s += `. Average ${kmh(c.avg)} km/h (easy range ${band(c.lo, c.hi)}), ${verdict()}`;
   return s;
+}
+// Speed in each 3 minutes of the 12-minute test, from the speed profile
+function testSplits(a){
+  const p = a.prof; if(!p || !a.laps) return null;
+  let start = 0; for(const l of a.laps){ if(l.kind === 'test') break; start += l.time/1000; }
+  const i0 = Math.round(start/p.s), n = Math.round(720/p.s), bins = p.v.slice(i0, i0 + n);
+  if(bins.length < n*0.9) return null;
+  const out = [];
+  for(let k = 0; k < 4; k++){ const s = bins.slice(Math.round(k*bins.length/4), Math.round((k + 1)*bins.length/4)); out.push(s.reduce((x, y) => x + y, 0)/s.length/10); }
+  return out;
+}
+// The "done for today" card: what happened, what it means, what comes next
+function doneCardHtml(a, b){
+  const c = a.coach, nr = normRow(profile());
+  let html = `<h2>Today</h2><div class="ttl">Done for today ✓</div>
+    <div class="vsub" style="margin-top:6px">${(a.dist/1000).toFixed(2)} km · ${fmtTime(a.time)} in total${a.plan ? ' · ' + a.plan : ''}</div>`;
+  if(c && c.kind === 'test'){
+    if(c.testDist){
+      const v = (c.testDist - 504.9)/44.73, q = nr ? pctOf(v, nr.row) : null, who = nr ? (nr.sex === 'M' ? 'men' : 'women') + ' aged ' + Math.floor(nr.age/10)*10 + '–' + (Math.floor(nr.age/10)*10 + 9) : '';
+      html += `<div style="margin-top:10px"><div class="prow"><b>Distance in 12 minutes</b><span>${Math.round(c.testDist)} m</span></div>
+        <div class="prow"><b>Your VO2max</b><span>${v.toFixed(1)}</span></div></div>
+        <p class="why-p">${q ? `That is ${q.txt} for ${who}: the <b>${fitBand(q.p)}</b> band.` : 'Add your birth date and sex in Coach settings below to see where this puts you.'} It is saved as your VO2max, and every target in the app now uses it.</p>`;
+      const sp = testSplits(a);
+      if(sp){
+        const mean = sp.reduce((x, y) => x + y, 0)/4, spread = (Math.max(...sp) - Math.min(...sp))/mean;
+        html += `<p class="why-p">Your speed in each 3 minutes: ${sp.map(x => x.toFixed(1)).join(' → ')} km/h. ${spread > 0.12 ? 'That is uneven. A fast start or a late sprint usually means an even pace would score higher.' : 'Nicely even, which is what a good test looks like.'}</p>`;
+      }
+      if(b.vv){
+        const p0 = PRESETS.find(x => x.name === LADDER[0]);
+        html += `<p class="why-p"><b>What this changes:</b> your speed at VO2max is ${kmh(b.vv)} km/h. Easy runs should feel like ${band(b.vv*.65, b.vv*.78)}. Your first interval session will be ${p0.name} at ${band(b.vv*p0.lo, b.vv*p0.hi)}.</p>`;
+      }
+    } else html += `<p class="why-p">${coachNote(c)}.</p>`;
+  } else if(c){
+    html += `<p class="why-p">${coachNote(c)}.</p>`;
+  }
+  return html + `<div class="vsub" style="margin-top:10px">Eat, drink and stretch: recovery starts now.</div>`;
+}
+// A plain-text summary for pasting into Claude for a review. No locations or names, just the training.
+function buildSummary(){
+  const acts = store.get('trackr.acts', []).slice().sort((x, y) => y.date - x.date);
+  const est = vo2Estimates(), ref = reference(est), pr = profile(), nr = normRow(pr), cfg = coachCfg(), b = coachBrief();
+  const run = x => !/walk|strength|cardio/i.test(x.type);
+  const L = [];
+  L.push('Please act as my running coach. Below is my Trackr training summary. Review the last weeks: say what is going well, what worries you, and what I should change in my plan. Be honest and specific, and ask me anything you need.');
+  L.push('');
+  L.push(`DATE: ${new Date().toDateString()}`);
+  if(nr) L.push(`ME: ${nr.sex === 'M' ? 'male' : 'female'}, age ${nr.age}`);
+  if(pr && pr.goal) L.push(`MY GOAL: ${pr.goal}`);
+  L.push(`COACH SETTINGS: can train ${cfg.days.map(d => DOW[d]).join(', ')}; up to ${cfg.maxRuns} runs a week; longest run ${cfg.maxLong} min`);
+  if(ref){
+    const q = nr ? pctOf(ref.v, nr.row) : null;
+    L.push(`VO2MAX: ${ref.v.toFixed(1)} ml/kg/min (${ref.kind === 'log' ? 'a logged reading' : 'estimated from my runs'})${q ? `, ${q.txt} for my age and sex (${fitBand(q.p)})` : ''}; my speed at VO2max is ${kmh(velAtVo2(ref.v))} km/h`);
+  }
+  const pbOf = n => PB.find(r => r[0] === n);
+  L.push(`PERSONAL BESTS (from my Strava history): ${['1 km', '5 km', '10 km', 'Half marathon'].map(n => `${n} ${pbOf(n)[1][0]}`).join(', ')}; my best 5 km in 2026 so far is ${pbOf('5 km')[2][6]}`);
+  const lg = loggedReadings();
+  if(lg.length) L.push('VO2MAX READINGS: ' + lg.map(r => `${r.value.toFixed(1)} (${r.source}, ${new Date(r.date).toLocaleDateString()})`).join('; '));
+  L.push('');
+  L.push('LAST 4 WEEKS (Monday to Sunday):');
+  const w0 = startOfDay(Date.now()) - ((new Date().getDay() + 6) % 7)*DAY;
+  for(let i = 3; i >= 0; i--){
+    const a0 = w0 - i*7*DAY, a1 = a0 + 7*DAY, w = acts.filter(x => x.date >= a0 && x.date < a1), r = w.filter(run);
+    L.push(`- week of ${new Date(a0).toLocaleDateString(undefined, { day:'numeric', month:'short' })}: ${r.length} run${r.length === 1 ? '' : 's'}, ${(r.reduce((s, x) => s + x.dist, 0)/1000).toFixed(1)} km, ${r.filter(isHard).length} hard sessions, strength ${w.filter(x => x.type === 'Strength').length}, other logged activity ${Math.round(w.filter(x => x.manual && x.type !== 'Strength').reduce((s, x) => s + x.time, 0)/60000)} min, active total ${Math.round(w.reduce((s, x) => s + x.time, 0)/60000)} min`);
+  }
+  L.push('');
+  L.push('LAST 10 SESSIONS (newest first):');
+  acts.slice(0, 10).forEach(x => {
+    const d = new Date(x.date).toLocaleDateString(undefined, { day:'numeric', month:'short' });
+    if(x.manual){ L.push(`- ${d}: ${x.type === 'Strength' ? 'gym weights' : x.type === 'Cardio' ? 'gym cardio' : 'walk'}, ${Math.round(x.time/60000)} min (logged by hand)`); return; }
+    let s = `- ${d}: ${x.type}${x.plan ? ' (' + x.plan + ')' : ''}, ${(x.dist/1000).toFixed(2)} km in ${fmtTime(x.time)} (${fmtPace(x.time, x.dist)} /km)`;
+    if(x.coach) s += `. ${coachNote(x.coach)}`;
+    const det = detectReps(x);
+    if(!x.coach && det && det.reps.length >= 3) s += `. Fast parts found: ${det.reps.length} reps averaging ${(det.reps.reduce((p, r) => p + r.dist, 0)/det.reps.reduce((p, r) => p + r.dur, 0)*3.6).toFixed(1)} km/h`;
+    if(x.cad && x.cad.v){ const ok = x.cad.v.filter(v => v > 0); if(ok.length) s += `. Cadence ${Math.round(ok.reduce((p, q) => p + q, 0)/ok.length)} spm`; }
+    L.push(s);
+  });
+  L.push('');
+  L.push(`WHAT THE COACH SAYS FOR TODAY: ${b.mode === 'run' ? b.session.title : b.mode === 'rest' ? 'rest day' : 'already trained today'}`);
+  b.why.forEach(w => L.push(`- ${w}`));
+  L.push('');
+  L.push('MY REFLECTION (I will fill this in):');
+  L.push('- What was hardest this week?');
+  L.push('- What did I learn about myself?');
+  L.push('- What do I want from next week?');
+  return L.join('\n');
 }
 function usualSpot(){
   const pts = runsOnly().filter(a => daysAgo(a.date) <= 180 && a.segs[0] && a.segs[0][0]).map(a => a.segs[0][0]);
@@ -1370,11 +1500,7 @@ function renderToday(){
       <div class="controls"><button class="btn primary" data-do="strength">Log a 20-min strength session</button></div>
       <div class="alt"><button data-do="walk">Record a walk</button>${b.alt ? '<button data-do="anyway">Easy jog anyway</button>' : ''}${b.skipped ? '<button data-do="unrest">Give me a session</button>' : ''}</div>${next}`;
   } else {
-    const a = b.doneToday;
-    S.innerHTML = `<h2>Today</h2><div class="ttl">Done for today ✓</div>
-      <div class="vsub" style="margin-top:6px">${(a.dist/1000).toFixed(2)} km · ${fmtTime(a.time)} · ${fmtPace(a.time, a.dist)} /km${a.plan ? ' · ' + a.plan : ''}</div>
-      ${a.coach ? `<div class="vsub" style="margin-top:6px">${coachNote(a.coach)}</div>` : ''}
-      <div class="vsub" style="margin-top:8px">Good work. Eat, drink, and stretch. Recovery starts now.</div>${next}`;
+    S.innerHTML = doneCardHtml(b.doneToday, b) + next;
   }
   const L = $('#tLast'), la = b.last;
   L.hidden = !la || b.mode === 'done';
@@ -1383,7 +1509,7 @@ function renderToday(){
   $('#maxLong').value = b.cfg.maxLong;
   $('#maxRuns').value = b.cfg.maxRuns;
   const pr = profile() || {};
-  $('#pBirth').value = pr.birth || ''; $('#pSex').value = pr.sex || '';
+  $('#pBirth').value = pr.birth || ''; $('#pSex').value = pr.sex || ''; $('#pGoal').value = pr.goal || '';
 }
 $('#todayView').onclick = e => {
   const day = e.target.closest('button[data-day]');
@@ -1410,6 +1536,11 @@ $('#todayView').onclick = e => {
     showTab('rec'); render();
   }
 };
+$('#sumCopy').onclick = async () => {
+  const text = buildSummary(), box = $('#sumBox');
+  try{ await navigator.clipboard.writeText(text); box.hidden = true; toast('Summary copied. Paste it into Claude.'); }
+  catch(e){ box.hidden = false; box.value = text; box.focus(); box.select(); toast('Could not copy automatically: select the text below and copy it.'); }
+};
 $('#lgAdd').onclick = () => {
   const min = Math.round(+$('#lgMin').value), back = +$('#lgDay').value, kind = $('#lgType').value;
   if(!(min >= 5 && min <= 240)){ toast('Enter between 5 and 240 minutes.'); return; }
@@ -1420,8 +1551,8 @@ $('#lgAdd').onclick = () => {
   toast(`${kind === 'Walking' ? 'Walk' : kind === 'Cardio' ? 'Cardio' : 'Gym'} logged: ${min} min`); renderToday(); renderList();
 };
 $('#maxRuns').onchange =e => { const cfg = coachCfg(); cfg.maxRuns = clamp(Math.round(+e.target.value) || 5, 3, 6); store.set('trackr.coach', cfg); renderToday(); };
-const saveProfile = () => { store.set('trackr.profile', { birth: $('#pBirth').value, sex: $('#pSex').value }); renderToday(); $('#tSet').open = true; };
-$('#pBirth').onchange = saveProfile; $('#pSex').onchange = saveProfile;
+const saveProfile = () => { store.set('trackr.profile', { birth: $('#pBirth').value, sex: $('#pSex').value, goal: $('#pGoal').value.trim().slice(0, 140) }); renderToday(); $('#tSet').open = true; };
+$('#pBirth').onchange = saveProfile; $('#pSex').onchange = saveProfile; $('#pGoal').onchange = saveProfile;
 $('#maxLong').onchange =e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('#todayView').classList.contains('on')) renderToday(); });
 
@@ -1863,7 +1994,7 @@ $('#impFile').onchange = async e => {
     const readings = (data && data.app === 'trackr' && Array.isArray(data.vo2) ? data.vo2 : [])
       .filter(r => r && r.id && isFinite(r.value) && isFinite(r.date));
     const pf = data && data.app === 'trackr' && data.profile && /^\d{4}-\d{2}-\d{2}$/.test(data.profile.birth || '') && (data.profile.sex === 'M' || data.profile.sex === 'F') ? data.profile : null;
-    if(pf && !profile()) store.set('trackr.profile', { birth: pf.birth, sex: pf.sex });   // never overwrite what you set on this phone
+    if(pf && !profile()) store.set('trackr.profile', { birth: pf.birth, sex: pf.sex, goal: typeof pf.goal === 'string' ? pf.goal.slice(0, 140) : '' });   // never overwrite what you set on this phone
     if(!incoming.length && !readings.length && !pf){ toast('That file has no Trackr data.'); return; }
     const have = store.get('trackr.acts', []), ids = new Set(have.map(a => a.id));
     const fresh = incoming.filter(a => !ids.has(a.id));
