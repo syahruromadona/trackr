@@ -26,7 +26,7 @@ body{height:100dvh;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui
 button{touch-action:manipulation}
 .hero{padding:6px 16px 0;text-align:center;background:var(--panel)}
 .hero .hl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
-.hero .hv{font-size:min(30vw,150px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);transition:color .2s}
+.hero .hv{font-size:min(24vw,120px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);transition:color .2s}
 .hero .hv.moving{color:var(--accent)}
 .hero .hv small{font-size:.2em;font-weight:600;color:var(--muted);margin-left:6px}
 .hero .hp{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted)}
@@ -204,15 +204,15 @@ details.panel summary{cursor:pointer;font-weight:700}
 
   <section id="recView" class="view">
     <div class="hero">
-      <div class="hl">Current speed</div>
-      <div class="hv" id="curBox"><span id="curSpd">--</span><small>km/h</small></div>
-      <div class="hp"><span id="curPace">--</span> /km &nbsp;·&nbsp; <span id="curCad">--</span> spm</div>
+      <div class="hl">Current pace</div>
+      <div class="hv" id="curBox"><span id="curSpd">--</span><small>min/km</small></div>
+      <div class="hp"><span id="curCad">--</span> spm</div>
       <canvas id="spark" aria-label="Speed over the last two minutes"></canvas>
     </div>
     <div class="trio">
       <div class="stat"><div class="v" id="sTime">0:00</div><div class="l">Time</div></div>
       <div class="stat"><div class="v" id="sDist">0.00</div><div class="l">km</div></div>
-      <div class="stat"><div class="v" id="sPace">--</div><div class="l" id="sPaceL">Avg /km</div></div>
+      <div class="stat"><div class="v" id="sPace">--</div><div class="l" id="sPaceL">Avg min/km</div></div>
     </div>
     <div class="planchip" id="planChip" hidden><span id="planChipTxt"></span><button id="planWarm" class="mini" hidden></button><button id="planClear" aria-label="Clear plan">×</button></div>
     <div class="plan" id="planBar" hidden>
@@ -256,7 +256,7 @@ details.panel summary{cursor:pointer;font-weight:700}
       </div>
     </div>
     <div class="panel">
-      <h2>Target speeds</h2>
+      <h2>Target paces</h2>
       <div class="seg" id="refSeg"><button data-ref="est">From estimate</button><button data-ref="log">From logged</button></div>
       <div class="vsub" id="refNote" style="margin:0 0 6px"></div>
       <div id="zones"></div>
@@ -272,7 +272,7 @@ details.panel summary{cursor:pointer;font-weight:700}
         <label>To %<input id="cHi" type="number" inputmode="numeric" value="102" min="60" max="130"></label>
         <button class="sbtn" id="cGo">Start custom</button>
       </div>
-      <div class="vsub">Targets are % of your speed at VO2max. Rests are free-pace jogs; a 10 min warm-up and 5 min cool-down are added (tap Next to skip).</div>
+      <div class="vsub">Targets are % of your speed at VO2max, shown as min/km. Rests are free-pace jogs; a 10 min warm-up and 5 min cool-down are added (tap Next to skip).</div>
     </div>
     <div class="panel">
       <h2>Weekly distance (km)</h2>
@@ -429,7 +429,7 @@ function render(){
   $('#sTime').textContent = fmtTime(ms);
   $('#sDist').textContent = (d/1000).toFixed(2);
   $('#sPace').textContent = ride ? fmtSpeed(ms, d) : fmtPace(ms, d);
-  $('#sPaceL').textContent = ride ? 'Avg km/h' : 'Avg /km';
+  $('#sPaceL').textContent = ride ? 'Avg km/h' : 'Avg min/km';
   $('#types').classList.toggle('locked', !!act);
   route.setLatLngs(act ? act.segs.map(s => s.map(p => [p[0], p[1]])) : []);
   renderPlan();
@@ -441,14 +441,14 @@ function render(){
 function renderState(){
   const el = $('#recState'); if(!el) return;
   let cls = '', txt;
-  if(!act) txt = 'Not recording. The speed above is live, but nothing is saved until you press Start.';
+  if(!act) txt = 'Not recording. The pace above is live, but nothing is saved until you press Start.';
   else if(act.status === 'running') { cls = 'rec'; txt = act.plan && act.plan.done ? 'Recording. Plan complete: press Finish to save.' : 'Recording. Press Finish when you are done.'; }
   else { cls = 'pause'; txt = 'Paused. Resume to carry on, or Finish to save.'; }
   el.className = 'recstate ' + cls; el.innerHTML = `<i></i><span>${txt}</span>`;
-  const hl = document.querySelector('.hero .hl'); if(hl) hl.textContent = act ? 'Current speed' : 'Current speed (live, not recording)';
+  const hl = document.querySelector('.hero .hl'); if(hl) hl.textContent = act ? 'Current pace' : 'Current pace (live, not recording)';
 }
 function lapLine(label, ms, d){
-  return `<b>${label}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtSpeed(ms, d)} km/h · ${fmtPace(ms, d)} /km`;
+  return `<b>${label}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtPace(ms, d)} min/km`;
 }
 function renderLap(){
   const bar = $('#lapbar');
@@ -541,8 +541,8 @@ function renderPlan(){
   bar.className = 'plan ' + ph.kind;
   $('#plLabel').textContent = ph.label;
   $('#plTime').textContent = fmtTime(Math.ceil(left/1000)*1000);
-  $('#plTarget').innerHTML = (ph.lo ? `Target <b>${(ph.lo*3.6).toFixed(1)}–${(ph.hi*3.6).toFixed(1)}</b> km/h<br>` : '') +
-    (nx ? `Next: ${nx.label}${nx.lo ? ` @ ${(nx.lo*3.6).toFixed(1)}–${(nx.hi*3.6).toFixed(1)}` : ''}` : 'Last phase');
+  $('#plTarget').innerHTML = (ph.lo ? `Target <b>${fmtPaceSec(1000/ph.hi)}–${fmtPaceSec(1000/ph.lo)}</b> min/km<br>` : '') +
+    (nx ? `Next: ${nx.label}${nx.lo ? ` @ ${fmtPaceSec(1000/nx.hi)}–${fmtPaceSec(1000/nx.lo)}` : ''}` : 'Last phase');
 }
 $('#planClear').onclick = () => { pendingPlan = null; renderPlan(); };
 $('#planWarm').onclick = () => { if(pendingPlan){ pendingPlan.skipWarm = !pendingPlan.skipWarm; renderPlan(); } };
@@ -641,8 +641,7 @@ function shownSpeed(){
 }
 function renderSpeed(){
   const v = shownSpeed();
-  $('#curSpd').textContent = v == null ? '--' : (v*3.6).toFixed(1);
-  $('#curPace').textContent = v == null || v < 0.8 ? '--' : fmtPaceSec(1000/v);
+  $('#curSpd').textContent = v == null || v < 0.8 ? '--' : fmtPaceSec(1000/v);
   const box = $('#curBox'), ph = curPhase();
   box.classList.toggle('moving', v != null && v >= 0.8);
   // during a work phase, colour the speed against the target band (after an 8 s grace to get up to speed)
@@ -860,7 +859,7 @@ function renderList(){
       <div class="row">${a.manual ? `<div><b>${Math.round(a.time/60000)}</b><span>min (logged by hand)</span></div>` : `
         <div><b>${(a.dist/1000).toFixed(2)}</b><span>km</span></div>
         <div><b>${fmtTime(a.time)}</b><span>time</span></div>
-        <div><b>${ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist)}</b><span>${ride ? 'km/h' : '/km'}</span></div>`}
+        <div><b>${ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist)}</b><span>${ride ? 'km/h' : 'min/km'}</span></div>`}
       </div>`;
     b.onclick = () => openDetail(a.id);
     el.appendChild(b);
@@ -887,12 +886,12 @@ function openDetail(id){
   $('#dDate').textContent = fmtDate(a.date);
   $('#dStats').innerHTML = a.manual ? statHtml(Math.round(a.time/60000) + ' min', 'Logged by hand') :
     statHtml((a.dist/1000).toFixed(2) + ' km', 'Distance') + statHtml(fmtTime(a.time), 'Time') +
-    statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' /km', ride ? 'Avg speed' : 'Avg pace') +
+    statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' min/km', ride ? 'Avg speed' : 'Avg pace') +
     statHtml(Math.round(a.gain) + ' m', 'Elev gain');
   $('#dCoach').textContent = coachNote(a.coach);
   renderDetailChart(a);
   $('#dLaps').innerHTML = (a.laps || []).map((l, i) =>
-    `<div class="lapt ${l.kind === 'work' ? 'work' : ''}"><b>${l.label || 'Lap ' + (i+1)}</b><span>${fmtTime(l.time)}</span><span>${(l.dist/1000).toFixed(2)} km</span><span>${fmtSpeed(l.time, l.dist)} km/h</span><span>${fmtPace(l.time, l.dist)}/km</span></div>`).join('');
+    `<div class="lapt ${l.kind === 'work' ? 'work' : ''}"><b>${l.label || 'Lap ' + (i+1)}</b><span>${fmtTime(l.time)}</span><span>${(l.dist/1000).toFixed(2)} km</span><span>${fmtPace(l.time, l.dist)} min/km</span></div>`).join('');
 }
 // Speed through the run with the fast parts shaded, plus the numbers Strava's single average hides:
 // the work-only average, the rest-of-run average, the fastest rep and how much the last rep faded.
@@ -909,29 +908,29 @@ function renderDetailChart(a){
   cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
   const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   const css = getComputedStyle(document.documentElement), acc = css.getPropertyValue('--accent').trim(), mut = css.getPropertyValue('--muted').trim(), grid = css.getPropertyValue('--line').trim();
-  const ymax = Math.max(10, Math.ceil(Math.max(...kmhArr)/2)*2), L0 = 26, B0 = 14, T0 = 4;
+  const ymax = Math.max(10, Math.ceil(Math.max(...kmhArr)/2)*2), L0 = 34, B0 = 14, T0 = 4;
   const X = t => L0 + t/total*(w - L0 - 4), Y = v => T0 + (1 - v/ymax)*(h - T0 - B0);
   g.font = '10px system-ui,sans-serif'; g.fillStyle = mut; g.strokeStyle = grid; g.lineWidth = 1;
-  [0, ymax/2, ymax].forEach(v => { g.beginPath(); g.moveTo(L0, Y(v)); g.lineTo(w - 4, Y(v)); g.stroke(); g.fillText(String(Math.round(v)), 2, Y(v) + 3); });
-  g.textAlign = 'right'; g.fillText(Math.round(total/60) + ' min', w - 4, h - 2); g.textAlign = 'left'; g.fillText('km/h', L0, h - 2);
+  [0, ymax/2, ymax].forEach(v => { g.beginPath(); g.moveTo(L0, Y(v)); g.lineTo(w - 4, Y(v)); g.stroke(); g.fillText(v > 0 ? fmtPaceSec(3600/v) : 'stop', 2, Y(v) + 3); });
+  g.textAlign = 'right'; g.fillText(Math.round(total/60) + ' min', w - 4, h - 2); g.textAlign = 'left'; g.fillText('min/km', L0, h - 2);
   g.globalAlpha = .22; g.fillStyle = acc; regions.forEach(([t0, t1]) => g.fillRect(X(t0), T0, Math.max(2, X(t1) - X(t0)), h - T0 - B0)); g.globalAlpha = 1;
   g.beginPath(); kmhArr.forEach((v, i) => i ? g.lineTo(X(i*p.s), Y(v)) : g.moveTo(X(0), Y(v))); g.lineWidth = 1.6; g.strokeStyle = acc; g.lineJoin = 'round'; g.stroke();
   // numbers
   let html = '';
-  const whole = a.dist/(a.time/1000)*3.6;
+  const whole = a.dist/(a.time/1000)*3.6, pk = k => fmtPaceSec(3600/k);
   const summary = (label, reps) => {   // reps: [{dur(s), dist(m)}]
     const td = reps.reduce((s, r) => s + r.dist, 0), tt = reps.reduce((s, r) => s + r.dur, 0), sp = r => r.dist/r.dur*3.6;
     const first = sp(reps[0]), last = sp(reps[reps.length - 1]), fast = Math.max(...reps.map(sp));
     const restD = a.dist - td, restT = a.time/1000 - tt;
-    return `<div class="repsum">${label}: <b>${reps.length} reps</b> · average <b>${(td/tt*3.6).toFixed(1)} km/h</b> over ${fmtTime(tt*1000)} · fastest ${fast.toFixed(1)} · last vs first ${last >= first ? '+' : ''}${((last/first - 1)*100).toFixed(0)}%<br>
-      <span style="color:var(--muted)">Whole run ${whole.toFixed(1)} km/h${restT > 60 ? ` · the rest of the run ${(restD/restT*3.6).toFixed(1)} km/h` : ''}</span></div>`;
+    return `<div class="repsum">${label}: <b>${reps.length} reps</b> · average <b>${pk(td/tt*3.6)} min/km</b> over ${fmtTime(tt*1000)} · fastest ${pk(fast)} · last vs first ${last >= first ? '+' : ''}${((last/first - 1)*100).toFixed(0)}%<br>
+      <span style="color:var(--muted)">Whole run ${pk(whole)} min/km${restT > 60 ? ` · the rest of the run ${pk(restD/restT*3.6)} min/km` : ''}</span></div>`;
   };
   if(planned){
     const reps = a.laps.filter(l => l.kind === 'work' && l.time > 5000).map(l => ({ dur: l.time/1000, dist: l.dist }));
     if(reps.length) html += summary('Work reps', reps);
   } else if(det && det.reps.length >= 2){
     html += summary('Fast parts found in this run', det.reps);
-    html += det.reps.slice(0, 12).map((r, i) => `<div class="lapt"><b>Rep ${i + 1}</b><span>at ${fmtTime(r.t*1000)}</span><span>${r.dur} s</span><span>${Math.round(r.dist)} m</span><span>${(r.v*3.6).toFixed(1)} km/h</span></div>`).join('');
+    html += det.reps.slice(0, 12).map((r, i) => `<div class="lapt"><b>Rep ${i + 1}</b><span>at ${fmtTime(r.t*1000)}</span><span>${r.dur} s</span><span>${Math.round(r.dist)} m</span><span>${pk(r.v*3.6)} min/km</span></div>`).join('');
     html += '<div style="margin-top:4px">Found from your speed (not recorded as laps), so treat the edges as approximate.</div>';
   }
   // how the phone's own speed reading compares with position-based speed (to judge which to trust)
@@ -1151,9 +1150,9 @@ function renderTrain(){
     z.innerHTML = s.innerHTML = '<div class="vsub">Needs a VO2max value first.</div>';
   } else {
     const vv = velAtVo2(ref.v);
-    $('#refNote').textContent = `Based on ${ref.label}. Speed at VO2max: ${(vv*3.6).toFixed(1)} km/h (${fmtPaceSec(1000/vv)} /km).`;
-    const rng = (lo, hi) => [`${(vv*lo*3.6).toFixed(1)}–${(vv*hi*3.6).toFixed(1)} km/h`, `${fmtPaceSec(1000/(vv*lo))}–${fmtPaceSec(1000/(vv*hi))} /km`];
-    z.innerHTML = ZONES.map(([n, lo, hi]) => { const [a, b] = rng(lo, hi); return `<div class="zone"><span>${n}<small>${Math.round(lo*100)}–${Math.round(hi*100)}% of VO2max speed</small></span><span class="r">${a}<small style="display:block">${b}</small></span></div>`; }).join('');
+    $('#refNote').textContent = `Based on ${ref.label}. Pace at VO2max: ${fmtPaceSec(1000/vv)} min/km.`;
+    const rng = (lo, hi) => `${fmtPaceSec(1000/(vv*hi))}–${fmtPaceSec(1000/(vv*lo))} min/km`;
+    z.innerHTML = ZONES.map(([n, lo, hi]) => { const a = rng(lo, hi); return `<div class="zone"><span>${n}<small>${Math.round(lo*100)}–${Math.round(hi*100)}% of VO2max speed</small></span><span class="r">${a}</span></div>`; }).join('');
     s.innerHTML = PRESETS.map((p, i) => { const [a] = rng(p.lo, p.hi); return `<div class="sess"><span><b>${p.name}</b><small>${p.reps} × ${fmtDur(p.work)} @ ${a} · rest ${fmtDur(p.rest)}</small></span><button class="btn primary" data-p="${i}">Start</button></div>`; }).join('');
   }
   s.innerHTML += `<div class="sess"><span><b>12-min Cooper test</b><small>Steady hard effort. Logs a VO2max reading when done</small></span><button class="btn" data-test="1">Start</button></div>`;
@@ -1274,8 +1273,8 @@ const dkey = t => { const d = new Date(t); return `${d.getFullYear()}-${d.getMon
 const median = a => { if(!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m-1] + s[m])/2; };
 const round5 = m => Math.round(m/5)*5;
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
-const kmh = v => (v*3.6).toFixed(1);
-const band = (lo, hi) => `${kmh(lo)}–${kmh(hi)} km/h`;
+const kmh = v => fmtPaceSec(1000/v);   // m/s -> min:ss per km
+const band = (lo, hi) => `${kmh(hi)}–${kmh(lo)} min/km`;
 // days = days you are available to train (default: every day); maxRuns caps the weekly runs the coach will ramp up to
 const coachCfg = () => Object.assign({ days: [0, 1, 2, 3, 4, 5, 6], maxLong: 60, maxRuns: 5 }, store.get('trackr.coach', {}));
 const detHard = a => !!(detectReps(a) || {}).hard;   // fast surges found inside the run, even if it was not recorded as an interval session
@@ -1309,8 +1308,8 @@ function nextLevel(acts, kind, max){
   if(!last) return { level: 0, note: 'this is your first one, so we start at the easiest level' };
   const c = last.coach, ok = c.done >= Math.ceil(c.total*0.75) && (!c.lo || c.avg >= c.lo*0.97);
   let level = Math.min(max, c.level + (ok ? 1 : 0));
-  let note = ok ? `you hit your targets last time${c.lo ? ` (${kmh(c.avg)} km/h vs ${band(c.lo, c.hi)})` : ''}, so we step up`
-                : `last time you completed ${c.done} of ${c.total}${c.lo ? ` at ${kmh(c.avg)} km/h (target ${band(c.lo, c.hi)})` : ''}, so we repeat that level`;
+  let note = ok ? `you hit your targets last time${c.lo ? ` (${kmh(c.avg)} min/km vs ${band(c.lo, c.hi)})` : ''}, so we step up`
+                : `last time you completed ${c.done} of ${c.total}${c.lo ? ` at ${kmh(c.avg)} min/km (target ${band(c.lo, c.hi)})` : ''}, so we repeat that level`;
   const gap = daysAgo(last.date);
   if(gap > 21){ level = Math.max(0, level - 1); note = `it's been ${gap} days since the last one, so we drop a level`; }
   return { level, note };
@@ -1356,12 +1355,12 @@ function describePlan(plan){
     if(p.kind === 'work'){
       let j = i, reps = 0; while(j < ph.length && (ph[j].kind === 'work' || ph[j].kind === 'rest')){ if(ph[j].kind === 'work') reps++; j++; }
       const rest = ph.slice(i, j).find(x => x.kind === 'rest');
-      rows.push([`${reps} × ${fmtDur(p.dur)}`, `${band(p.lo, p.hi)} · ${pc(p.lo)}–${pc(p.hi)} /km${rest ? `<br>rest ${fmtDur(rest.dur)} jog` : ''}`]);
+      rows.push([`${reps} × ${fmtDur(p.dur)}`, `${band(p.lo, p.hi)}${rest ? `<br>rest ${fmtDur(rest.dur)} jog` : ''}`]);
       i = j; continue;
     }
     if(p.kind === 'warm') rows.push(['Warm-up', `${fmtDur(p.dur)} easy walk/jog`]);
     else if(p.kind === 'cool') rows.push(['Cool-down', `${fmtDur(p.dur)} easy walk/jog`]);
-    else if(p.kind === 'easy') rows.push([fmtDur(p.dur), `${band(p.lo, p.hi)} · ${pc(p.lo)}–${pc(p.hi)} /km`]);
+    else if(p.kind === 'easy') rows.push([fmtDur(p.dur), `${band(p.lo, p.hi)}`]);
     else if(p.kind === 'test') rows.push([fmtDur(p.dur), 'steady hard effort: cover as much distance as you can']);
     i++;
   }
@@ -1374,11 +1373,11 @@ function coachNote(c){
   if(c.kind === 'test') return c.testDist ? `12-minute test: ${Math.round(c.testDist)} m, which gives a VO2max of ${((c.testDist - 504.9)/44.73).toFixed(1)}` : 'The 12-minute test was not completed, so no VO2max was recorded';
   if(c.kind === 'interval' || c.kind === 'pace'){
     let s = `${c.done} of ${c.total} reps completed`;
-    if(c.lo && c.done) s += `. Average speed in the reps ${kmh(c.avg)} km/h (target ${band(c.lo, c.hi)}), ${verdict()}`;
+    if(c.lo && c.done) s += `. Average pace in the reps ${kmh(c.avg)} min/km (target ${band(c.lo, c.hi)}), ${verdict()}`;
     return s;
   }
   let s = c.done ? 'Steady run completed' : 'Steady run not completed';
-  if(c.lo && c.done) s += `. Average ${kmh(c.avg)} km/h (easy range ${band(c.lo, c.hi)}), ${verdict()}`;
+  if(c.lo && c.done) s += `. Average ${kmh(c.avg)} min/km (easy range ${band(c.lo, c.hi)}), ${verdict()}`;
   return s;
 }
 // Speed in each 3 minutes of the 12-minute test, from the speed profile
@@ -1405,11 +1404,11 @@ function doneCardHtml(a, b){
       const sp = testSplits(a);
       if(sp){
         const mean = sp.reduce((x, y) => x + y, 0)/4, spread = (Math.max(...sp) - Math.min(...sp))/mean;
-        html += `<p class="why-p">Your speed in each 3 minutes: ${sp.map(x => x.toFixed(1)).join(' → ')} km/h. ${spread > 0.12 ? 'That is uneven. A fast start or a late sprint usually means an even pace would score higher.' : 'Nicely even, which is what a good test looks like.'}</p>`;
+        html += `<p class="why-p">Your pace in each 3 minutes: ${sp.map(x => fmtPaceSec(3600/x)).join(' → ')} min/km. ${spread > 0.12 ? 'That is uneven. A fast start or a late sprint usually means an even pace would score higher.' : 'Nicely even, which is what a good test looks like.'}</p>`;
       }
       if(b.vv){
         const p0 = PRESETS.find(x => x.name === LADDER[0]);
-        html += `<p class="why-p"><b>What this changes:</b> your speed at VO2max is ${kmh(b.vv)} km/h. Easy runs should feel like ${band(b.vv*.65, b.vv*.78)}. Your first interval session will be ${p0.name} at ${band(b.vv*p0.lo, b.vv*p0.hi)}.</p>`;
+        html += `<p class="why-p"><b>What this changes:</b> your pace at VO2max is ${kmh(b.vv)} min/km. Easy runs should feel like ${band(b.vv*.65, b.vv*.78)}. Your first interval session will be ${p0.name} at ${band(b.vv*p0.lo, b.vv*p0.hi)}.</p>`;
       }
     } else html += `<p class="why-p">${coachNote(c)}.</p>`;
   } else if(c){
@@ -1431,7 +1430,7 @@ function buildSummary(){
   L.push(`COACH SETTINGS: can train ${cfg.days.map(d => DOW[d]).join(', ')}; up to ${cfg.maxRuns} runs a week; longest run ${cfg.maxLong} min`);
   if(ref){
     const q = nr ? pctOf(ref.v, nr.row) : null;
-    L.push(`VO2MAX: ${ref.v.toFixed(1)} ml/kg/min (${ref.kind === 'log' ? 'a logged reading' : 'estimated from my runs'})${q ? `, ${q.txt} for my age and sex (${fitBand(q.p)})` : ''}; my speed at VO2max is ${kmh(velAtVo2(ref.v))} km/h`);
+    L.push(`VO2MAX: ${ref.v.toFixed(1)} ml/kg/min (${ref.kind === 'log' ? 'a logged reading' : 'estimated from my runs'})${q ? `, ${q.txt} for my age and sex (${fitBand(q.p)})` : ''}; my pace at VO2max is ${kmh(velAtVo2(ref.v))} min/km`);
   }
   const sn = store.get('trackr.sensor', null);
   if(sn) L.push(`MOTION SENSOR (checked ${new Date(sn.when).toLocaleDateString()}): ${sn.short}`);
@@ -1451,10 +1450,10 @@ function buildSummary(){
   acts.slice(0, 10).forEach(x => {
     const d = new Date(x.date).toLocaleDateString(undefined, { day:'numeric', month:'short' });
     if(x.manual){ L.push(`- ${d}: ${x.type === 'Strength' ? 'gym weights' : x.type === 'Cardio' ? 'gym cardio' : 'walk'}, ${Math.round(x.time/60000)} min (logged by hand)`); return; }
-    let s = `- ${d}: ${x.type}${x.plan ? ' (' + x.plan + ')' : ''}, ${(x.dist/1000).toFixed(2)} km in ${fmtTime(x.time)} (${fmtPace(x.time, x.dist)} /km)`;
+    let s = `- ${d}: ${x.type}${x.plan ? ' (' + x.plan + ')' : ''}, ${(x.dist/1000).toFixed(2)} km in ${fmtTime(x.time)} (${fmtPace(x.time, x.dist)} min/km)`;
     if(x.coach) s += `. ${coachNote(x.coach)}`;
     const det = detectReps(x);
-    if(!x.coach && det && det.reps.length >= 3) s += `. Fast parts found: ${det.reps.length} reps averaging ${(det.reps.reduce((p, r) => p + r.dist, 0)/det.reps.reduce((p, r) => p + r.dur, 0)*3.6).toFixed(1)} km/h`;
+    if(!x.coach && det && det.reps.length >= 3) s += `. Fast parts found: ${det.reps.length} reps averaging ${fmtPaceSec(det.reps.reduce((p, r) => p + r.dur, 0)/det.reps.reduce((p, r) => p + r.dist, 0)*1000)} min/km`;
     if(x.cad && x.cad.v){ const ok = x.cad.v.filter(v => v > 0); if(ok.length) s += `. Cadence ${Math.round(ok.reduce((p, q) => p + q, 0)/ok.length)} spm`; }
     L.push(s);
   });
@@ -1519,10 +1518,10 @@ function coachBrief(){
     b.session = kind === 'test' ? makeSession('test', { vv: 0, acts, cfg }) : makeSession(kind, ctx);
     b.kind = kind;
     if(b.session.levelTxt) b.why.unshift(`${b.session.levelTxt}: ${b.session.note}.`);
-    if(ref) b.why.push(`Targets use your speed at VO2max of ${kmh(b.vv)} km/h (from ${ref.label}).`);
+    if(ref) b.why.push(`Targets use your pace at VO2max of ${kmh(b.vv)} min/km (from ${ref.label}).`);
     if(ref && (kind === 'easy' || kind === 'long' || kind === 'comeback')){
       const usual = median(acts.slice(0, 8).map(a => a.dist/(a.time/1000)));
-      if(usual && usual > b.vv*.78*1.03) b.why.push(`Your usual runs average ${kmh(usual)} km/h, which is faster than easy. Slow down on purpose. Easy days make the hard days possible.`);
+      if(usual && usual > b.vv*.78*1.03) b.why.push(`Your usual runs average ${kmh(usual)} min/km, which is faster than easy. Slow down on purpose. Easy days make the hard days possible.`);
     }
   }
   if(ref && b.mode !== 'done'){ b.alt = makeSession(kind === 'comeback' ? 'comeback' : 'easy', ctx); }
@@ -1564,7 +1563,7 @@ function renderToday(){
   }
   const L = $('#tLast'), la = b.last;
   L.hidden = !la || b.mode === 'done';
-  if(la && !L.hidden) L.innerHTML = `<h2>Last run</h2><b>${la.type}${la.plan ? ' · ' + la.plan : ''}</b> · ${fmtDate(la.date)}<div class="vsub">${(la.dist/1000).toFixed(2)} km · ${fmtTime(la.time)} · ${fmtPace(la.time, la.dist)} /km</div>${la.coach ? `<div class="vsub" style="margin-top:4px">${coachNote(la.coach)}</div>` : ''}`;
+  if(la && !L.hidden) L.innerHTML = `<h2>Last run</h2><b>${la.type}${la.plan ? ' · ' + la.plan : ''}</b> · ${fmtDate(la.date)}<div class="vsub">${(la.dist/1000).toFixed(2)} km · ${fmtTime(la.time)} · ${fmtPace(la.time, la.dist)} min/km</div>${la.coach ? `<div class="vsub" style="margin-top:4px">${coachNote(la.coach)}</div>` : ''}`;
   $('#dayChips').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `<button data-day="${d}" class="${b.cfg.days.includes(d) ? 'on' : ''}">${DOW[d]}</button>`).join('');
   $('#maxLong').value = b.cfg.maxLong;
   $('#maxRuns').value = b.cfg.maxRuns;
@@ -1631,9 +1630,9 @@ const PB = [   // distance, all-time [time, pace /km, date], best time per year
 const PB_M = { '400 m':400, '1 km':1000, '5 km':5000, '10 km':10000, '15 km':15000, '20 km':20000, 'Half marathon':21097.5 };
 const pbPace = (t, m) => { if(t === '–') return ''; const s = t.split(':').reduce((a, x) => a*60 + +x, 0)/(m/1000); return `${Math.floor(Math.round(s)/60)}:${String(Math.round(s) % 60).padStart(2, '0')}`; };
 function renderPBs(){
-  const hd = ['Distance', 'Time', 'Pace /km', 'Date'].map(h => `<th>${h}</th>`).join('');
+  const hd = ['Distance', 'Time', 'Pace min/km', 'Date'].map(h => `<th>${h}</th>`).join('');
   const all = PB.map(r => `<tr><td>${r[0]}</td><td class="best">${r[1][0]}</td><td>${pbPace(r[1][0], PB_M[r[0]])}</td><td>${r[1][2]}</td></tr>`).join('');
-  const yr = PB.map(r => `<tr><td>${r[0]}</td>${r[2].map(t => `<td${t === r[1][0] ? ' class="best"' : ''}>${t}${t === '–' ? '' : `<br><span style="color:var(--muted);font-weight:400;font-size:11px">${pbPace(t, PB_M[r[0]])}/km</span>`}</td>`).join('')}</tr>`).join('');
+  const yr = PB.map(r => `<tr><td>${r[0]}</td>${r[2].map(t => `<td${t === r[1][0] ? ' class="best"' : ''}>${t}${t === '–' ? '' : `<br><span style="color:var(--muted);font-weight:400;font-size:11px">${pbPace(t, PB_M[r[0]])} min/km</span>`}</td>`).join('')}</tr>`).join('');
   $('#pbBody').innerHTML = `<div class="vsub" style="margin-top:8px">All-time</div><table class="pbt"><tr>${hd}</tr>${all}</table>
     <div class="vsub" style="margin-top:12px">Best time and pace by year</div><div class="pbw"><table class="pbt"><tr><th>Distance</th>${PB_YEARS.map(y => `<th>${y}</th>`).join('')}</tr>${yr}</table></div>
     <div class="vsub" style="margin-top:8px">Never run 30 km or a marathon. Times are moving time from GPS and can differ from Strava's own best efforts by a few seconds.</div>
@@ -2018,7 +2017,7 @@ function renderAllData(){
   const tot = Object.values(by).reduce((a, o) => ({ n: a.n + o.n, km: a.km + o.km, s: a.s + o.s, max: Math.max(a.max, o.max) }), { n: 0, km: 0, s: 0, max: 0 });
   const log = rows.map(r => `<tr${r.bad ? ' style="opacity:.55"' : ''}><td>${r.d}</td><td>${r.t === 'W' ? 'Walk' : 'Run'}${r.bad ? ' ⚠' : ''}</td><td>${r.km.toFixed(2)}</td><td>${fmtTime(r.s*1000)}</td><td>${pace(r.s, r.km)}</td></tr>`).join('');
   $('#allData').innerHTML = `<div class="vsub" style="margin-top:14px">All your data, by year (runs)</div><div class="pbw"><table class="pbt"><tr><th>Year</th><th>Runs</th><th>km</th><th>Time</th><th>Avg pace</th><th>Avg km</th><th>Longest</th></tr>${Object.keys(by).sort().map(y => line(y, by[y])).join('')}${line('All time', tot, true)}</table></div>
-    <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Every run (${rows.length})</summary><div class="pbw" style="max-height:60vh;overflow:auto"><table class="pbt"><tr><th>Date</th><th>Type</th><th>km</th><th>Time</th><th>/km</th></tr>${log}</table></div>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Every run (${rows.length})</summary><div class="pbw" style="max-height:60vh;overflow:auto"><table class="pbt"><tr><th>Date</th><th>Type</th><th>km</th><th>Time</th><th>min/km</th></tr>${log}</table></div>
     <div class="vsub" style="margin-top:6px">⚠ = GPS recorded a vehicle-speed track (14.6 km in 26 minutes), so it is left out of the totals and bests.</div></details>`;
 }
 renderPBs();
