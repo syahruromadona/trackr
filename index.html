@@ -196,6 +196,9 @@ details.panel summary{cursor:pointer;font-weight:700}
         <label>Sex<select id="pSex"><option value="">Choose</option><option value="M">Male</option><option value="F">Female</option></select></label>
       </div>
       <div class="fld"><label style="flex:1">My goal, in one line (goes into the weekly summary)<input id="pGoal" type="text" maxlength="140" style="width:100%" placeholder="e.g. keep getting fitter for the sake of it"></label></div>
+      <div class="vsub" style="margin-top:14px"><b>Sensor check.</b> Cadence needs the phone's motion sensor. Tap the button, then walk briskly or jog on the spot for 15 seconds, with the phone in your pocket or armband.</div>
+      <div class="controls" style="margin-top:8px"><button class="btn" id="senBtn" style="min-height:48px;font-size:15px">Check motion sensor</button></div>
+      <div class="vsub" id="senOut" style="margin-top:8px;line-height:1.5"></div>
     </details>
   </section>
 
@@ -597,7 +600,7 @@ function finish(){
     laps.push({ time: act.elapsed - act.lapT0, dist: act.dist - act.lapD0, label: ph ? ph.label : `Lap ${laps.length + 1}`, kind: ph ? ph.kind : undefined, dur: ph ? ph.dur*1000 : undefined });
   }
   const coach = coachResult(laps);
-  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps, prof: makeProfile(act.segs) || profileFromSpeed(act.sp || []), dop: profileFromSpeed(act.sp || []), cad: cadProfile(act.cad || []) });
+  list.unshift({ id: String(act.startedAt), type: act.type, plan: act.plan ? act.plan.name : undefined, coach, date: act.startedAt, dist: act.dist, time: act.elapsed, gain: act.gain, segs: act.segs, laps, prof: makeProfile(act.segs) || profileFromSpeed(act.sp || []), dop: profileFromSpeed(act.sp || []), cad: cadProfile(act.cad || []), mot: act.mot || 0 });
   if(coach && coach.kind === 'test' && coach.testDist){
     const v = (coach.testDist - 504.9)/44.73;   // Cooper 12-minute formula
     if(v >= 10 && v <= 95){
@@ -690,6 +693,7 @@ function profileFromSpeed(sp){
 let stepT = [], gAvg = null, prevA = [0, 0], prevT = 0, lastStep = 0, ampEMA = 1.5, cadSmooth = null, motionOn = false;
 function onMotion(e){
   const a = e.accelerationIncludingGravity; if(!a || a.x == null) return;
+  if(act && act.status === 'running') act.mot = (act.mot || 0) + 1;   // how many motion readings arrived while recording (0 = the sensor sent nothing)
   const now = Date.now(), m = Math.hypot(a.x, a.y, a.z);
   gAvg = gAvg == null ? m : gAvg + 0.02*(m - gAvg);
   const x = m - gAvg, thr = Math.max(1.2, 0.5*ampEMA);
@@ -713,6 +717,59 @@ async function enableMotion(){
   }catch(e){}
 }
 function disableMotion(){ window.removeEventListener('devicemotion', onMotion); motionOn = false; stepT = []; cadSmooth = null; renderCad(); }
+// Sensor check: does motion data reach the app at all, and can it count steps? Tells you what to fix if not.
+let senBusy = false;
+async function sensorCheck(){
+  if(senBusy) return; senBusy = true;
+  const out = $('#senOut'), btn = $('#senBtn'); btn.disabled = true;
+  let ask = 'not needed';
+  try{   // iPhone only asks from a tap, so this goes first, before anything else is awaited
+    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function')
+      ask = await Promise.race([DeviceMotionEvent.requestPermission(), new Promise(r => setTimeout(() => r('no answer'), 4000))]);   // some browsers define it but never answer
+  }catch(e){ ask = 'error: ' + e.message; }
+  let perm = 'unknown';
+  try{ if(navigator.permissions && navigator.permissions.query) perm = (await navigator.permissions.query({ name: 'accelerometer' })).state; }catch(e){}
+  let n = 0, nulls = 0, lo = Infinity, hi = -Infinity;
+  const h = e => { const a = e.accelerationIncludingGravity; if(!a || a.x == null){ nulls++; return; } n++; const m = Math.hypot(a.x, a.y, a.z); if(m < lo) lo = m; if(m > hi) hi = m; };
+  window.addEventListener('devicemotion', h);
+  const wasOn = motionOn; if(!wasOn) await enableMotion();   // also runs the app's own step counter so its reading can be shown
+  let gen = 'not available', gn = 0, sensor = null;
+  try{   // a second route to the same sensor
+    if(typeof Accelerometer !== 'undefined'){
+      sensor = new Accelerometer({ frequency: 30 });
+      sensor.addEventListener('reading', () => { gn++; });
+      sensor.addEventListener('error', e => { gen = 'error: ' + (e.error && e.error.name); });
+      sensor.start(); gen = 'started';
+    }
+  }catch(e){ gen = 'error: ' + e.name; }
+  const t0 = Date.now(), T = 15000;
+  while(Date.now() - t0 < T){
+    const s = (Date.now() - t0)/1000;
+    out.innerHTML = `Checking… ${Math.ceil(T/1000 - s)} s left. Keep moving.<br>Motion readings so far: <b>${n}</b>${s > 1 ? ` (${Math.round(n/s)} per second)` : ''}${nulls ? `, empty ones: ${nulls}` : ''}${cadSmooth ? `<br>Cadence so far: <b>${Math.round(cadSmooth)} spm</b>` : ''}`;
+    await new Promise(r => setTimeout(r, 400));
+  }
+  window.removeEventListener('devicemotion', h);
+  try{ sensor && sensor.stop(); }catch(e){}
+  const cad = cadSmooth ? Math.round(cadSmooth) : null;
+  if(!wasOn && !act) disableMotion();
+  const genTxt = gen === 'started' ? (gn > 0 ? `works (${gn} readings)` : 'no readings') : gen;
+  let verdict, short;
+  const blocked = n === 0 && (nulls > 0 || perm === 'denied' || ask === 'denied' || /NotAllowed|Security/.test(gen));
+  if(blocked){ short = 'blocked by the browser' + (perm === 'denied' ? ' (permission denied)' : nulls ? ' (empty motion events)' : ''); verdict = `<b>Blocked.</b> The browser is not allowing this page to use the motion sensor${perm === 'denied' ? ' (it reports the permission as denied)' : ''}. Fix: tap the icon at the left of the address bar, open Permissions (or Site settings), set <b>Motion sensors</b> to Allow, reload the page and run this check again. In Brave, also open the Shields icon and turn off blocking for this site.`; }
+  else if(n === 0){ short = 'no motion events at all'; verdict = '<b>No motion data at all.</b> Nothing arrived, so this browser or phone is not sending motion readings to the page. Try Chrome, check the phone\'s sensor/privacy settings, and make sure the page is the https link.'; }
+  else if(hi - lo < 3){ short = `readings arrive (${n}) but barely move`; verdict = `<b>The sensor works, but I saw almost no movement.</b> Walk briskly or jog on the spot with the phone in your pocket or armband, then run the check again.`; }
+  else if(cad){ short = `working, cadence ${cad} spm`; verdict = `<b>Working.</b> Cadence read ${cad} steps per minute.`; }
+  else { short = `readings arrive (${n}) but no steps recognised`; verdict = `<b>The sensor works, but I could not pick out your steps.</b> Try again while walking briskly or jogging, with the phone in a pocket or armband (not held loosely in the hand).`; }
+  store.set('trackr.sensor', { when: Date.now(), n, nulls, short });
+  out.innerHTML = `${verdict}<br><span style="color:var(--muted)">Details: https ${window.isSecureContext ? 'yes' : 'NO'} · motion API ${typeof DeviceMotionEvent !== 'undefined' ? 'yes' : 'NO'} · permission ${perm}${ask !== 'not needed' ? ' · iPhone prompt ' + ask : ''} · readings ${n} (${Math.round(n/(T/1000))}/s), empty ${nulls}${n ? ` · range ${lo.toFixed(1)}–${hi.toFixed(1)} m/s²` : ''} · second route (Accelerometer API) ${genTxt}</span>`;
+  btn.disabled = false; senBusy = false;
+}
+function renderSensorLast(){
+  const o = $('#senOut'), s = store.get('trackr.sensor', null);
+  if(!o || senBusy) return;
+  o.textContent = s ? `Last check, ${new Date(s.when).toLocaleDateString(undefined, { day:'numeric', month:'short' })}: ${s.short}.` : '';
+}
+$('#senBtn').onclick = sensorCheck;
 function renderCad(){ const el = $('#curCad'); if(el) el.textContent = cadSmooth && act && act.status === 'running' ? Math.round(cadSmooth) : '--'; }
 function cadProfile(arr){   // per-second readings (0 = none) to 10 s averages
   const v = [];
@@ -1376,6 +1433,8 @@ function buildSummary(){
     const q = nr ? pctOf(ref.v, nr.row) : null;
     L.push(`VO2MAX: ${ref.v.toFixed(1)} ml/kg/min (${ref.kind === 'log' ? 'a logged reading' : 'estimated from my runs'})${q ? `, ${q.txt} for my age and sex (${fitBand(q.p)})` : ''}; my speed at VO2max is ${kmh(velAtVo2(ref.v))} km/h`);
   }
+  const sn = store.get('trackr.sensor', null);
+  if(sn) L.push(`MOTION SENSOR (checked ${new Date(sn.when).toLocaleDateString()}): ${sn.short}`);
   const pbOf = n => PB.find(r => r[0] === n);
   L.push(`PERSONAL BESTS (from my Strava history): ${['1 km', '5 km', '10 km', 'Half marathon'].map(n => `${n} ${pbOf(n)[1][0]}`).join(', ')}; my best 5 km in 2026 so far is ${pbOf('5 km')[2][6]}`);
   const lg = loggedReadings();
@@ -1511,6 +1570,7 @@ function renderToday(){
   $('#maxRuns').value = b.cfg.maxRuns;
   const pr = profile() || {};
   $('#pBirth').value = pr.birth || ''; $('#pSex').value = pr.sex || ''; $('#pGoal').value = pr.goal || '';
+  renderSensorLast();
 }
 $('#todayView').onclick = e => {
   const day = e.target.closest('button[data-day]');

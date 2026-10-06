@@ -59,3 +59,10 @@ The app opens on **Today**: a briefing that reads your history and tells you wha
 - Finish is always available while recording (with a confirmation), next to Lap/Next and Pause
 - After a session the Today card explains the result in plain words; after the 12-minute test it shows distance, VO2max, where that puts you, 3-minute pace splits and what changes in your targets
 - **Weekly review with Claude** (Today tab): one tap copies a plain-text summary (last 4 weeks, VO2max, bests, last 10 sessions, today's plan, three reflection questions, optional one-line goal) to paste into Claude. No locations or names
+
+## Sensor check
+
+Coach settings (Today tab) has a 15-second **motion sensor check**. It reports whether the browser sends motion data at all,
+whether the permission is blocked (with the exact fix), the readings per second, and whether the app can count steps for cadence.
+The last result is kept and included in the weekly summary. Recordings also store how many motion readings arrived (`mot`),
+so a session with no cadence can be explained afterwards.
