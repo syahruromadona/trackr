@@ -36,6 +36,21 @@ button{touch-action:manipulation}
 .lapbar{background:var(--card);padding:6px 16px;font-size:14px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;gap:1px}
 .lapbar b{font-weight:700} .lapbar .prev{color:var(--muted)}
 .mapwrap{position:relative;flex:1;min-height:90px;display:flex}
+.lapwrap{flex:1;min-height:90px;display:flex;flex-direction:column;background:var(--bg)}
+.lapwrap .lh{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 4px 16px;font-size:14px;color:var(--muted)}
+.lapwrap .lh b{color:var(--ink)}
+.lapwrap .lh button{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.lapscroll{flex:1;min-height:0;overflow:auto;padding:0 16px}
+.laptab{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.laptab th{position:sticky;top:0;background:var(--bg);font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:right;padding:4px 0 6px;border-bottom:1px solid var(--line)}
+.laptab td{font-size:20px;font-weight:600;text-align:right;padding:9px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.laptab th:first-child,.laptab td:first-child{text-align:left}
+.laptab td:first-child{font-size:15px}
+.laptab tr.now td{color:var(--accent)} .laptab tr.now td:first-child::before{content:'● ';font-size:11px;vertical-align:2px}
+.laptab tr.easy td{color:var(--muted);font-weight:500}
+.laptab td.ok{color:#16a34a} .laptab td.low{color:#f59e0b} .laptab td.high{color:#3b82f6}
+.laptab .empty{font-size:14px;font-weight:400;color:var(--muted);text-align:left;white-space:normal;border:0;padding-top:16px}
+.mapwrap .lapsbtn{right:auto;left:50%;transform:translateX(-50%)}
 .sheet{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
 .types.locked{display:none}
 .btn{min-height:60px}
@@ -223,8 +238,13 @@ details.panel summary{cursor:pointer;font-weight:700}
       <div id="lapNow"></div>
       <div class="prev" id="lapPrev"></div>
     </div>
-    <div class="mapwrap">
+    <div class="lapwrap" id="lapWrap" hidden>
+      <div class="lh"><span id="lapSum"></span><button id="lapMapBtn">Show map</button></div>
+      <div class="lapscroll"><table class="laptab"><thead><tr><th>Lap</th><th>Time</th><th>km</th><th>Pace</th></tr></thead><tbody id="lapRows"></tbody></table></div>
+    </div>
+    <div class="mapwrap" id="mapWrap">
       <div id="map"></div>
+      <button class="followbtn lapsbtn" id="lapBackBtn" hidden>Show laps</button>
       <button class="followbtn" id="followBtn" aria-pressed="true">Following</button>
       <button class="followbtn layerbtn" aria-pressed="false" style="right:auto;left:12px">Satellite</button>
     </div>
@@ -434,6 +454,7 @@ function render(){
   route.setLatLngs(act ? act.segs.map(s => s.map(p => [p[0], p[1]])) : []);
   renderPlan();
   renderLap();
+  renderLapTable();
   renderControls();
   renderState();
 }
@@ -452,12 +473,51 @@ function lapLine(label, ms, d){
 }
 function renderLap(){
   const bar = $('#lapbar');
-  bar.hidden = !act || (act.plan && !act.plan.done);
+  bar.hidden = !act || (act.plan && !act.plan.done) || lapMode();
   if(bar.hidden) return;
   const n = act.laps.length;
   $('#lapNow').innerHTML = lapLine(`Lap ${n + 1}`, elapsedNow() - act.lapT0, act.dist - act.lapD0);
   $('#lapPrev').innerHTML = n ? 'Last: ' + lapLine(act.laps[n-1].label || `Lap ${n}`, act.laps[n-1].time, act.laps[n-1].dist).replace(/<\/?b>/g, '') : 'Tap LAP at each change of pace';
 }
+// Interval mode: a lap table replaces the map (pace per rep matters more than the route). Long runs and easy runs keep the map.
+let mapPeek = false;   // "Show map" while in interval mode; reset when the mode changes
+function lapMode(){
+  const t = act ? act.type : type, plan = act ? act.plan : pendingPlan;
+  return t === 'Interval' || !!(plan && plan.phases.some(ph => ph.kind === 'work'));
+}
+function lapPaceCls(l){   // a rep with a target: green on target, amber too slow, blue too fast
+  if(!l.lo || l.dist < 10) return '';
+  const v = l.dist/(l.time/1000);
+  return v < l.lo ? 'low' : v > l.hi ? 'high' : 'ok';
+}
+let lastMapShown = true;
+function renderLapTable(){
+  const on = lapMode(), table = on && !mapPeek;
+  $('#lapWrap').hidden = !table; $('#mapWrap').hidden = table; $('#lapBackBtn').hidden = !on;
+  if(!table && !lastMapShown) setTimeout(() => map.invalidateSize(), 0);   // Leaflet needs a nudge after being hidden
+  lastMapShown = !table;
+  if(!table) return;
+  const rows = [];
+  if(act){
+    const ph = curPhase(), done = act.plan && act.plan.done;
+    rows.push({ label: ph ? ph.label : done ? 'After plan' : `Lap ${act.laps.length + 1}`, kind: ph ? ph.kind : '', lo: ph && ph.lo, hi: ph && ph.hi,
+                time: elapsedNow() - act.lapT0, dist: act.dist - act.lapD0, now: true });
+    for(let i = act.laps.length - 1; i >= 0; i--) rows.push(Object.assign({ label: `Lap ${i + 1}` }, act.laps[i]));
+  }
+  const quiet = new Set(['rest', 'warm', 'cool']);
+  $('#lapRows').innerHTML = rows.length ? rows.map(l =>
+    `<tr class="${l.now ? 'now' : ''} ${quiet.has(l.kind) ? 'easy' : ''}"><td>${l.label}</td><td>${fmtTime(l.time)}</td><td>${(l.dist/1000).toFixed(2)}</td>` +
+    `<td class="${l.now ? '' : lapPaceCls(l)}">${fmtPace(l.time, l.dist)}</td></tr>`).join('')
+    : `<tr><td class="empty" colspan="4">${pendingPlan ? 'Your reps will appear here, newest at the top.' : 'Laps appear here, newest at the top. Tap LAP at each change of pace.'}</td></tr>`;
+  const reps = act ? act.laps.filter(l => l.kind === 'work' && l.dist >= 10) : [];
+  const total = act && act.plan ? act.plan.phases.filter(x => x.kind === 'work').length : 0;
+  if(reps.length){
+    const t = reps.reduce((a, l) => a + l.time, 0), d = reps.reduce((a, l) => a + l.dist, 0);
+    $('#lapSum').innerHTML = `Reps <b>${reps.length}${total ? '/' + total : ''}</b> · avg <b>${fmtPace(t, d)}</b> min/km`;
+  } else $('#lapSum').textContent = act ? `${act.laps.length} lap${act.laps.length === 1 ? '' : 's'}` : 'Lap table';
+}
+$('#lapMapBtn').onclick = () => { mapPeek = true; render(); };
+$('#lapBackBtn').onclick = () => { mapPeek = false; render(); };
 function renderControls(){
   const c = $('#controls'); c.innerHTML = '';
   const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.onclick = fn; c.appendChild(b); };
@@ -491,7 +551,7 @@ function curPhase(){ return act && act.plan && !act.plan.done ? act.plan.phases[
 function advancePhase(skipped){
   const p = act.plan, ph = p.phases[p.idx], ms = elapsedNow();
   const bound = skipped ? ms : p.t0 + ph.dur*1000;       // natural ends land exactly on the boundary, so phases never drift
-  act.laps.push({ time: Math.max(0, bound - act.lapT0), dist: act.dist - act.lapD0, label: ph.label, kind: ph.kind, dur: ph.dur*1000 });
+  act.laps.push({ time: Math.max(0, bound - act.lapT0), dist: act.dist - act.lapD0, label: ph.label, kind: ph.kind, dur: ph.dur*1000, lo: ph.lo, hi: ph.hi });
   act.lapT0 = bound; act.lapD0 = act.dist; p.t0 = bound; p.idx++; p.lastTick = -1;
   if(p.idx >= p.phases.length){ p.done = true; cue('end'); } else cue(p.phases[p.idx].kind);
   saveDraft(true); render();
@@ -838,7 +898,7 @@ setInterval(() => {
 /* ---------- activity type ---------- */
 $('#types').onclick = e => {
   const b = e.target.closest('button'); if(!b || act) return;
-  type = b.dataset.type;
+  type = b.dataset.type; mapPeek = false;
   document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x === b));
   render();
 };
