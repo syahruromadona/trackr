@@ -49,7 +49,6 @@ button{touch-action:manipulation}
 .laptab tr.now td{color:var(--accent)} .laptab tr.now td:first-child::before{content:'● ';font-size:11px;vertical-align:2px}
 .laptab tr.easy td{color:var(--muted);font-weight:500}
 .laptab td.ok{color:#16a34a} .laptab td.low{color:#f59e0b} .laptab td.high{color:#3b82f6}
-.laptab .empty{font-size:14px;font-weight:400;color:var(--muted);text-align:left;white-space:normal;border:0;padding-top:16px}
 .mapwrap .lapsbtn{right:auto;left:50%;transform:translateX(-50%)}
 .sheet{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
 .types.locked{display:none}
@@ -219,9 +218,7 @@ details.panel summary{cursor:pointer;font-weight:700}
 
   <section id="recView" class="view">
     <div class="hero">
-      <div class="hl">Current pace</div>
       <div class="hv" id="curBox"><span id="curSpd">--</span><small>min/km</small></div>
-      <div class="hp"><span id="curCad">--</span> spm</div>
       <canvas id="spark" aria-label="Speed over the last two minutes"></canvas>
     </div>
     <div class="trio">
@@ -458,15 +455,14 @@ function render(){
   renderControls();
   renderState();
 }
-// Always say plainly whether anything is being recorded: the GPS and speed are live as soon as the app opens, but nothing is saved until Start.
+// A one-word status while an activity is open; nothing at all before Start (the Start button says enough).
 function renderState(){
   const el = $('#recState'); if(!el) return;
-  let cls = '', txt;
-  if(!act) txt = 'Not recording. The pace above is live, but nothing is saved until you press Start.';
-  else if(act.status === 'running') { cls = 'rec'; txt = act.plan && act.plan.done ? 'Recording. Plan complete: press Finish to save.' : 'Recording. Press Finish when you are done.'; }
-  else { cls = 'pause'; txt = 'Paused. Resume to carry on, or Finish to save.'; }
+  el.hidden = !act; if(!act) return;
+  let cls, txt;
+  if(act.status === 'running') { cls = 'rec'; txt = act.plan && act.plan.done ? 'Recording · plan complete' : 'Recording'; }
+  else { cls = 'pause'; txt = 'Paused'; }
   el.className = 'recstate ' + cls; el.innerHTML = `<i></i><span>${txt}</span>`;
-  const hl = document.querySelector('.hero .hl'); if(hl) hl.textContent = act ? 'Current pace' : 'Current pace (live, not recording)';
 }
 function lapLine(label, ms, d){
   return `<b>${label}</b> · ${fmtTime(ms)} · ${(d/1000).toFixed(2)} km · ${fmtPace(ms, d)} min/km`;
@@ -508,13 +504,13 @@ function renderLapTable(){
   $('#lapRows').innerHTML = rows.length ? rows.map(l =>
     `<tr class="${l.now ? 'now' : ''} ${quiet.has(l.kind) ? 'easy' : ''}"><td>${l.label}</td><td>${fmtTime(l.time)}</td><td>${(l.dist/1000).toFixed(2)}</td>` +
     `<td class="${l.now ? '' : lapPaceCls(l)}">${fmtPace(l.time, l.dist)}</td></tr>`).join('')
-    : `<tr><td class="empty" colspan="4">${pendingPlan ? 'Your reps will appear here, newest at the top.' : 'Laps appear here, newest at the top. Tap LAP at each change of pace.'}</td></tr>`;
+    : '';
   const reps = act ? act.laps.filter(l => l.kind === 'work' && l.dist >= 10) : [];
   const total = act && act.plan ? act.plan.phases.filter(x => x.kind === 'work').length : 0;
   if(reps.length){
     const t = reps.reduce((a, l) => a + l.time, 0), d = reps.reduce((a, l) => a + l.dist, 0);
     $('#lapSum').innerHTML = `Reps <b>${reps.length}${total ? '/' + total : ''}</b> · avg <b>${fmtPace(t, d)}</b> min/km`;
-  } else $('#lapSum').textContent = act ? `${act.laps.length} lap${act.laps.length === 1 ? '' : 's'}` : 'Lap table';
+  } else $('#lapSum').textContent = act ? `${act.laps.length} lap${act.laps.length === 1 ? '' : 's'}` : '';
 }
 $('#lapMapBtn').onclick = () => { mapPeek = true; render(); };
 $('#lapBackBtn').onclick = () => { mapPeek = false; render(); };
