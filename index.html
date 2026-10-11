@@ -108,8 +108,21 @@ input,select{-webkit-user-select:text;user-select:text}
 .plan .pr{text-align:right;font-size:14px;line-height:1.35}
 .planchip{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);padding:6px 8px 6px 16px;font-size:14px}
 .planchip button{border:0;background:none;color:var(--muted);font:inherit;font-size:22px;cursor:pointer;padding:2px 10px}
-#trainView,#todayView{overflow:auto;padding:12px 16px 20px;gap:12px}
+#todayView{overflow:auto;padding:12px 16px 20px;gap:12px}
 .plan.easy{background:#0f766e}.plan.test{background:var(--accent)}
+details.more>summary{cursor:pointer;font-weight:700;background:var(--card);border-radius:14px;padding:14px}
+details.more .mbody{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.goalnum{font-size:40px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.gbar{height:6px;background:var(--bg);border-radius:3px;margin-top:10px;overflow:hidden}.gbar i{display:block;height:100%;background:var(--accent)}
+.wkrow{display:flex;justify-content:space-between;gap:4px;margin-top:4px}
+.wd{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.wd .c{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid var(--line);color:var(--ink);background:var(--card)}
+.wd .c.done{border-color:transparent;color:#fff}.wd .c.plan{border-style:dashed}
+.wd.today b{color:var(--ink)}.wd.today .c{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--accent)}
+.k-hard,.wd .c.done.k-hard{background:#dc2626}.k-easy,.wd .c.done.k-easy{background:#16a34a}.k-long,.wd .c.done.k-long{background:#2563eb}.k-str,.wd .c.done.k-str{background:#9333ea}.k-walk,.wd .c.done.k-walk{background:#64748b}.k-test,.wd .c.done.k-test{background:#d97706}
+.c.plan.k-hard,.c.plan.k-easy,.c.plan.k-long,.c.plan.k-test{background:transparent!important}
+.c.plan.k-hard{border-color:#dc2626}.c.plan.k-easy{border-color:#16a34a}.c.plan.k-long{border-color:#2563eb}.c.plan.k-test{border-color:#d97706}
+.wklg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:11px;color:var(--muted)}.wklg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
 .ttl{font-size:22px;font-weight:800;line-height:1.2}
 .pill{display:inline-block;background:var(--bg);border-radius:999px;padding:4px 11px;font-size:13px;margin:6px 6px 0 0;font-variant-numeric:tabular-nums}
 .spot{font-size:13px;color:var(--muted);margin-top:6px}
@@ -178,6 +191,8 @@ details.panel summary{cursor:pointer;font-weight:700}
 <main>
   <section id="todayView" class="view on">
     <div class="panel" id="tHead"></div>
+    <div class="panel" id="tGoal"></div>
+    <div class="panel" id="tWeek"></div>
     <div class="panel" id="tSession"></div>
     <div class="panel" id="tLast" hidden></div>
     <div class="panel" id="tReview">
@@ -196,6 +211,46 @@ details.panel summary{cursor:pointer;font-weight:700}
         <button class="sbtn" id="lgAdd">Log it</button>
       </div>
     </div>
+    <details class="more" id="trainView"><summary>VO2max, paces and sessions</summary><div class="mbody">
+    <div class="panel" id="longPanel"></div>
+    <div class="panel">
+      <h2>VO2max</h2>
+      <div class="vbig" id="vEst">--</div>
+      <div class="vsub" id="vSub"></div>
+      <canvas id="vchart" aria-label="VO2max trend by month"></canvas>
+      <div class="vsub" id="vLegend"></div>
+      <div id="vList"></div>
+      <div class="fld">
+        <label>Reading<input id="vIn" type="number" inputmode="decimal" min="10" max="95" step="0.1" placeholder="e.g. 48"></label>
+        <label>Source<select id="vSrc"><option>Watch</option><option>Lab test</option><option>Cooper test</option><option>Other</option></select></label>
+        <button class="sbtn" id="vAdd">Log it</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Target paces</h2>
+      <div class="seg" id="refSeg"><button data-ref="est">From estimate</button><button data-ref="log">From logged</button></div>
+      <div class="vsub" id="refNote" style="margin:0 0 6px"></div>
+      <div id="zones"></div>
+    </div>
+    <div class="panel">
+      <h2>VO2max sessions</h2>
+      <div id="sessions"></div>
+      <div class="fld">
+        <label>Reps<input id="cReps" type="number" inputmode="numeric" value="6" min="1" max="30"></label>
+        <label>Work (min)<input id="cWork" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
+        <label>Rest (min)<input id="cRest" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
+        <label>From %<input id="cLo" type="number" inputmode="numeric" value="95" min="60" max="130"></label>
+        <label>To %<input id="cHi" type="number" inputmode="numeric" value="102" min="60" max="130"></label>
+        <button class="sbtn" id="cGo">Start custom</button>
+      </div>
+      <div class="vsub">Targets are % of your speed at VO2max, shown as min/km. Rests are free-pace jogs; a 10 min warm-up and 5 min cool-down are added (tap Next to skip).</div>
+    </div>
+    <div class="panel">
+      <h2>Weekly distance (km)</h2>
+      <div class="wk" id="wk"></div>
+    </div>
+    </div></details>
+    <details class="panel" id="pbPanel"><summary>Personal bests (from your Strava history)</summary><div id="pbBody"></div></details>
     <details class="panel" id="tSet">
       <summary>Coach settings</summary>
       <div class="vsub" style="margin-top:8px">Days you can train (untick any day you can't). The coach decides which of them are runs and which are recovery, and builds up gradually.</div>
@@ -257,45 +312,6 @@ details.panel summary{cursor:pointer;font-weight:700}
     </div>
   </section>
 
-  <section id="trainView" class="view">
-    <div class="panel" id="longPanel"></div>
-    <div class="panel">
-      <h2>VO2max</h2>
-      <div class="vbig" id="vEst">--</div>
-      <div class="vsub" id="vSub"></div>
-      <canvas id="vchart" aria-label="VO2max trend by month"></canvas>
-      <div class="vsub" id="vLegend"></div>
-      <div id="vList"></div>
-      <div class="fld">
-        <label>Reading<input id="vIn" type="number" inputmode="decimal" min="10" max="95" step="0.1" placeholder="e.g. 48"></label>
-        <label>Source<select id="vSrc"><option>Watch</option><option>Lab test</option><option>Cooper test</option><option>Other</option></select></label>
-        <button class="sbtn" id="vAdd">Log it</button>
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Target paces</h2>
-      <div class="seg" id="refSeg"><button data-ref="est">From estimate</button><button data-ref="log">From logged</button></div>
-      <div class="vsub" id="refNote" style="margin:0 0 6px"></div>
-      <div id="zones"></div>
-    </div>
-    <div class="panel">
-      <h2>VO2max sessions</h2>
-      <div id="sessions"></div>
-      <div class="fld">
-        <label>Reps<input id="cReps" type="number" inputmode="numeric" value="6" min="1" max="30"></label>
-        <label>Work (min)<input id="cWork" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
-        <label>Rest (min)<input id="cRest" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
-        <label>From %<input id="cLo" type="number" inputmode="numeric" value="95" min="60" max="130"></label>
-        <label>To %<input id="cHi" type="number" inputmode="numeric" value="102" min="60" max="130"></label>
-        <button class="sbtn" id="cGo">Start custom</button>
-      </div>
-      <div class="vsub">Targets are % of your speed at VO2max, shown as min/km. Rests are free-pace jogs; a 10 min warm-up and 5 min cool-down are added (tap Next to skip).</div>
-    </div>
-    <div class="panel">
-      <h2>Weekly distance (km)</h2>
-      <div class="wk" id="wk"></div>
-    </div>
-  </section>
 
   <section id="actView" class="view">
     <div class="tools">
@@ -303,8 +319,6 @@ details.panel summary{cursor:pointer;font-weight:700}
       <button class="btn" id="impAll">Restore</button>
       <input type="file" id="impFile" accept="application/json,.json" hidden>
     </div>
-    <div class="note" id="persistNote"></div>
-    <details class="panel" id="pbPanel" style="margin:10px 16px 0" open><summary>Personal bests (from your Strava history)</summary><div id="pbBody"></div></details>
     <div id="list"></div>
   </section>
 
@@ -333,7 +347,6 @@ details.panel summary{cursor:pointer;font-weight:700}
 <nav>
   <button id="tabToday" class="on">Today</button>
   <button id="tabRec">Record</button>
-  <button id="tabTrain">Train</button>
   <button id="tabAct">Activities</button>
 </nav>
 
@@ -1259,6 +1272,7 @@ function renderWeekly(){
   const max = Math.max(10, ...weeks.map(w => w.km));
   $('#wk').innerHTML = weeks.map(w => `<div><span>${w.km ? w.km.toFixed(0) : ''}</span><i style="height:${Math.max(2, w.km/max*70)}px"></i><span>${new Date(w.a).getDate()}/${new Date(w.a).getMonth() + 1}</span></div>`).join('');
 }
+$('#trainView').ontoggle = () => { if($('#trainView').open) renderTrain(); };   // the chart needs a visible width
 $('#sessions').onclick = e => {
   if(e.target.closest('button[data-test]')){ launch(makeSession('test', { vv: 0, acts: [], cfg: coachCfg() })); return; }
   const b = e.target.closest('button[data-p]'); if(b) startPlan(PRESETS[+b.dataset.p]);
@@ -1625,6 +1639,7 @@ function renderToday(){
   $('#maxRuns').value = b.cfg.maxRuns;
   const pr = profile() || {};
   $('#pBirth').value = pr.birth || ''; $('#pSex').value = pr.sex || ''; $('#pGoal').value = pr.goal || '';
+  renderGoal(); renderWeekCircles(b); renderTrain();
   renderSensorLast();
 }
 $('#todayView').onclick = e => {
@@ -1636,6 +1651,7 @@ $('#todayView').onclick = e => {
   }
   const btn = e.target.closest('button[data-do]'); if(!btn || !brief) return;
   const what = btn.dataset.do;
+  if(what === 'test'){ launch(makeSession('test', { vv: 0, acts: [], cfg: coachCfg() })); return; }
   if(what === 'start') launch(brief.session);
   else if(what === 'easier' || what === 'anyway') launch(brief.alt);
   else if(what === 'rest'){ store.set('trackr.skip', dkey(Date.now())); renderToday(); }
@@ -1671,6 +1687,68 @@ const saveProfile = () => { store.set('trackr.profile', { birth: $('#pBirth').va
 $('#pBirth').onchange = saveProfile; $('#pSex').onchange = saveProfile; $('#pGoal').onchange = saveProfile;
 $('#maxLong').onchange =e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('#todayView').classList.contains('on')) renderToday(); });
+
+/* ---------- next goal countdown + this week's circles ---------- */
+const COOPER_GAP = 42;   // retest the 12-minute Cooper test every 6 weeks
+function nextGoal(){
+  const c = loggedReadings().filter(r => r.source === 'Cooper test').sort((a, b) => b.date - a.date)[0];
+  if(!c) return null;
+  const due = startOfDay(c.date) + COOPER_GAP*DAY;
+  return { name: 'Next Cooper test', from: startOfDay(c.date), due, days: Math.round((due - startOfDay(Date.now()))/DAY), last: c };
+}
+function renderGoal(){
+  const el = $('#tGoal'), g = nextGoal();
+  if(!g){ el.innerHTML = `<h2>Next goal</h2><div class="ttl">First Cooper test</div><div class="vsub">12 minutes as far as you can. It sets every target in the app.</div><div class="controls"><button class="btn primary" data-do="test">Start the test</button></div>`; return; }
+  const pct = clamp((Date.now() - g.from)/(g.due - g.from), 0, 1)*100;
+  const when = new Date(g.due).toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
+  const head = g.days > 0 ? `<span class="goalnum">${g.days}</span> day${g.days === 1 ? '' : 's'}` : g.days === 0 ? '<span class="goalnum">Today</span>' : `<span class="goalnum">${-g.days}</span> day${g.days === -1 ? '' : 's'} overdue`;
+  el.innerHTML = `<h2>${g.name}</h2><div>${head}</div><div class="vsub" style="margin-top:6px">${when} · last test ${g.last.value.toFixed(1)} on ${new Date(g.last.date).toLocaleDateString(undefined, { day:'numeric', month:'short' })}. Beat your distance, or just run it honestly.</div><div class="gbar"><i style="width:${pct}%"></i></div>${g.days <= 0 ? '<div class="controls"><button class="btn primary" data-do="test">Start the test</button></div>' : ''}`;
+}
+const KIND_UI = { interval:['k-hard','Int'], pace:['k-hard','Pace'], long:['k-long','Long'], easy:['k-easy','Easy'], comeback:['k-easy','Easy'], test:['k-test','Test'] };
+function actKind(a){
+  if(a.type === 'Strength') return ['k-str', 'Gym'];
+  if(a.type === 'Walking' || a.type === 'Cardio') return ['k-walk', a.type === 'Walking' ? 'Walk' : 'Gym'];
+  if(a.coach && KIND_UI[a.coach.kind]) return KIND_UI[a.coach.kind];
+  if(a.type === 'Long run') return KIND_UI.long;
+  return isHard(a) ? KIND_UI.interval : KIND_UI.easy;
+}
+// Forecast the rest of the week with the coach's own rules, assuming each planned run gets done.
+function forecastWeek(b){
+  const out = {}, cfg = b.cfg, sim = b.acts.slice(), g = nextGoal();
+  const fake = (k, t) => ({ date: t, dist: 0, time: 0, type: k === 'interval' ? 'Interval' : 'Pace', coach: { kind: k }, segs: [] });
+  if(b.mode === 'run' && b.kind) sim.unshift(fake(b.kind, Date.now()));
+  for(let k = 1; k <= 6; k++){
+    const t = startOfDay(Date.now()) + k*DAY + 8*3600000, dow = new Date(t).getDay();
+    if(!b.ref || !cfg.days.includes(dow)){ out[k] = null; continue; }
+    if(g && startOfDay(t) === g.due){ out[k] = 'test'; sim.unshift(fake('test', t)); continue; }
+    const shifted = sim.map(a => Object.assign({}, a, { date: a.date - k*DAY }));
+    const lastHard = shifted.find(isHard), gap = lastHard ? daysAgo(lastHard.date) : Infinity;
+    const pk = pickKind(shifted, b.budget, gap);
+    let kind = pk.rest ? null : pk.kind;
+    if((kind === 'interval' || kind === 'pace') && shifted.filter(a => isHard(a) && daysAgo(a.date) <= 6).length >= 2) kind = 'easy';
+    out[k] = kind; if(kind) sim.unshift(fake(kind, t));
+  }
+  return out;
+}
+function renderWeekCircles(b){
+  const now = new Date(), wkStart = startOfDay(Date.now()) - ((now.getDay() + 6) % 7)*DAY;
+  const all = store.get('trackr.acts', []), fc = forecastWeek(b);
+  const cells = [];
+  for(let i = 0; i < 7; i++){
+    const d0 = wkStart + i*DAY, off = Math.round((d0 - startOfDay(Date.now()))/DAY), dow = new Date(d0).getDay();
+    const done = all.filter(a => startOfDay(a.date) === d0);
+    let cls = '', txt = '';
+    if(done.length){
+      const run = done.find(a => a.dist > 0 && a.type !== 'Walking') || done[0], [k, l] = actKind(run);
+      cls = 'done ' + k; txt = done.length > 1 ? l + '+' : l;
+    } else if(off === 0 && b.mode === 'run' && b.kind){ const [k, l] = KIND_UI[b.kind]; cls = 'plan ' + k; txt = l; }
+    else if(off > 0 && fc[off]){ const [k, l] = KIND_UI[fc[off]]; cls = 'plan ' + k; txt = l; }
+    else txt = off < 0 ? '–' : 'Rest';
+    cells.push(`<div class="wd${off === 0 ? ' today' : ''}"><b>${DOW[dow]}</b><div class="c ${cls}">${txt}</div>${new Date(d0).getDate()}</div>`);
+  }
+  $('#tWeek').innerHTML = `<h2>This week</h2><div class="wkrow">${cells.join('')}</div>
+    <div class="wklg"><span><i class="k-hard"></i>hard</span><span><i class="k-easy"></i>easy</span><span><i class="k-long"></i>long</span><span><i class="k-test"></i>test</span><span><i class="k-str"></i>gym</span><span><i class="k-walk"></i>walk</span><span>dashed = planned</span></div>`;
+}
 
 /* ---------- personal bests (fixed: best efforts from the full Strava history up to 3 Oct 2026) ---------- */
 const PB_YEARS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
@@ -2079,16 +2157,8 @@ function renderAllData(){
 renderPBs();
 
 /* ---------- persistence + backup ---------- */
-async function protectStorage(){
-  let msg = 'Your browser may clear this data. Back up regularly.';
-  try{
-    if(navigator.storage && navigator.storage.persisted){
-      let p = await navigator.storage.persisted();
-      if(!p && navigator.storage.persist) p = await navigator.storage.persist();
-      if(p) msg = 'Storage is protected from automatic clearing. Still back up in case you uninstall or switch phones.';
-    }
-  }catch(e){}
-  $('#persistNote').textContent = msg;
+async function protectStorage(){   // ask the browser not to clear our data; no message shown
+  try{ if(navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); }catch(e){}
 }
 function download(name, text, mime){
   const url = URL.createObjectURL(new Blob([text], {type:mime}));
@@ -2130,19 +2200,15 @@ $('#impFile').onchange = async e => {
 function showTab(t){
   $('#todayView').classList.toggle('on', t === 'today');
   $('#recView').classList.toggle('on', t === 'rec');
-  $('#trainView').classList.toggle('on', t === 'train');
   $('#actView').classList.toggle('on', t === 'act');
   $('#tabToday').classList.toggle('on', t === 'today');
   $('#tabRec').classList.toggle('on', t === 'rec');
-  $('#tabTrain').classList.toggle('on', t === 'train');
   $('#tabAct').classList.toggle('on', t === 'act');
   if(t === 'rec') setTimeout(() => map.invalidateSize(), 50);
   else if(t === 'today') renderToday();
-  else if(t === 'train') renderTrain();
   else renderList();
 }
 $('#tabToday').onclick = () => showTab('today');
-$('#tabTrain').onclick = () => showTab('train');
 $('#tabRec').onclick = () => showTab('rec');
 $('#tabAct').onclick = () => showTab('act');
 
