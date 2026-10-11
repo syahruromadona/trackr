@@ -123,6 +123,7 @@ details.more .mbody{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .c.plan.k-hard,.c.plan.k-easy,.c.plan.k-long,.c.plan.k-test{background:transparent!important}
 .c.plan.k-hard{border-color:#dc2626}.c.plan.k-easy{border-color:#16a34a}.c.plan.k-long{border-color:#2563eb}.c.plan.k-test{border-color:#d97706}
 .wklg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:11px;color:var(--muted)}.wklg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.spark{display:block;width:100%;height:40px;margin-top:8px}
 .ttl{font-size:22px;font-weight:800;line-height:1.2}
 .pill{display:inline-block;background:var(--bg);border-radius:999px;padding:4px 11px;font-size:13px;margin:6px 6px 0 0;font-variant-numeric:tabular-nums}
 .spot{font-size:13px;color:var(--muted);margin-top:6px}
@@ -929,15 +930,25 @@ function renderList(){
         <div><b>${(a.dist/1000).toFixed(2)}</b><span>km</span></div>
         <div><b>${fmtTime(a.time)}</b><span>time</span></div>
         <div><b>${ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist)}</b><span>${ride ? 'km/h' : 'min/km'}</span></div>`}
-      </div>`;
+      </div>${sparkSvg(a)}`;
     b.onclick = () => openDetail(a.id);
     el.appendChild(b);
   });
+}
+// Small speed-through-the-run line for the list card (higher = faster), averaged into ~60 points.
+function sparkSvg(a){
+  const v = a.prof && a.prof.v; if(!v || v.length < 6) return '';
+  const n = Math.min(60, v.length), pts = [];
+  for(let i = 0; i < n; i++){ const s0 = Math.floor(i*v.length/n), s1 = Math.max(s0 + 1, Math.floor((i + 1)*v.length/n)); pts.push(v.slice(s0, s1).reduce((p, q) => p + q, 0)/(s1 - s0)); }
+  const mx = Math.max(...pts) || 1, mn = Math.min(...pts), W = 300, H = 40;
+  const xy = pts.map((y, i) => `${(i/(n - 1)*W).toFixed(1)},${(H - 2 - (y - mn)/((mx - mn) || 1)*(H - 4)).toFixed(1)}`);
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,${H} ${xy.join(' ')} ${W},${H}" fill="var(--accent)" opacity=".15"/><polyline points="${xy.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
 }
 let dmap = null, dlayer = null, curId = null;
 function openDetail(id){
   const a = store.get('trackr.acts', []).find(x => x.id === id); if(!a) return;
   curId = id;
+  if(!$('#detail').classList.contains('on')) history.pushState({ detail: 1 }, '');   // so the phone's Back button closes the run instead of the app
   $('#detail').classList.add('on');
   if(!dmap){ dmap = L.map('dmap'); tile(dmap); }
   if(dlayer) dlayer.remove();
@@ -1023,11 +1034,13 @@ function renderDetailChart(a){
   }
   box.innerHTML = html;
 }
-$('#dBack').onclick =() => $('#detail').classList.remove('on');
+const closeDetail = () => { if(history.state && history.state.detail) history.back(); else $('#detail').classList.remove('on'); };
+window.addEventListener('popstate', () => $('#detail').classList.remove('on'));
+$('#dBack').onclick = closeDetail;
 $('#dDel').onclick = () => {
   if(!confirm('Delete this activity? This can’t be undone.')) return;
   store.set('trackr.acts', store.get('trackr.acts', []).filter(x => x.id !== curId));
-  $('#detail').classList.remove('on'); renderList();
+  closeDetail(); renderList();
 };
 $('#dGpx').onclick = () => {
   const a = store.get('trackr.acts', []).find(x => x.id === curId); if(!a) return;
