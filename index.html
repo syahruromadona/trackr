@@ -94,6 +94,8 @@ nav button.on{color:var(--accent);border-top-color:var(--accent)}
 .card .row{display:flex;gap:18px;font-variant-numeric:tabular-nums}
 .card .row b{display:block;font-size:20px} .card .row span{font-size:11px;color:var(--muted);text-transform:uppercase}
 .empty{color:var(--muted);text-align:center;margin-top:48px;padding:0 24px}
+#dStats{grid-template-columns:repeat(3,1fr)}#dStats .v{font-size:22px}
+.dlinks{display:flex;justify-content:center;gap:24px;margin-top:14px}.dlinks button{background:none;border:0;padding:8px;font:inherit;font-size:13px;color:var(--muted);text-decoration:underline;cursor:pointer}
 #detail{position:absolute;inset:0;background:var(--bg);z-index:1000;display:none;flex-direction:column}
 #detail.on{display:flex}
 #dmap{flex:1;min-height:0}
@@ -336,11 +338,7 @@ details.panel summary{cursor:pointer;font-weight:700}
       <div class="vsub" id="dReps" style="margin:0 0 10px"></div>
       <div class="vsub" id="dCoach" style="margin:0 0 10px"></div>
       <div id="dLaps"></div>
-      <div class="controls">
-        <button class="btn" id="dBack">Back</button>
-        <button class="btn primary" id="dGpx">Export GPX</button>
-        <button class="btn" id="dDel" style="color:var(--danger)">Delete</button>
-      </div>
+      <div class="dlinks"><button id="dGpx">Export GPX</button><button id="dDel">Delete</button></div>
     </div>
   </div>
 </main>
@@ -965,9 +963,8 @@ function openDetail(id){
   $('#dTitle').textContent = a.type + (a.plan ? ' · ' + a.plan : '');
   $('#dDate').textContent = fmtDate(a.date);
   $('#dStats').innerHTML = a.manual ? statHtml(Math.round(a.time/60000) + ' min', 'Logged by hand') :
-    statHtml((a.dist/1000).toFixed(2) + ' km', 'Distance') + statHtml(fmtTime(a.time), 'Time') +
-    statHtml(ride ? fmtSpeed(a.time, a.dist) + ' km/h' : fmtPace(a.time, a.dist) + ' min/km', ride ? 'Avg speed' : 'Avg pace') +
-    statHtml(Math.round(a.gain) + ' m', 'Elev gain');
+    statHtml((a.dist/1000).toFixed(2), 'km') + statHtml(fmtTime(a.time), 'Time') +
+    statHtml(ride ? fmtSpeed(a.time, a.dist) : fmtPace(a.time, a.dist), ride ? 'Avg km/h' : 'Avg min/km');
   $('#dCoach').textContent = coachNote(a.coach);
   renderDetailChart(a);
   $('#dLaps').innerHTML = (a.laps || []).map((l, i) =>
@@ -1036,7 +1033,6 @@ function renderDetailChart(a){
 }
 const closeDetail = () => { if(history.state && history.state.detail) history.back(); else $('#detail').classList.remove('on'); };
 window.addEventListener('popstate', () => $('#detail').classList.remove('on'));
-$('#dBack').onclick = closeDetail;
 $('#dDel').onclick = () => {
   if(!confirm('Delete this activity? This can’t be undone.')) return;
   store.set('trackr.acts', store.get('trackr.acts', []).filter(x => x.id !== curId));
