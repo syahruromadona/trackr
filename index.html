@@ -2207,6 +2207,7 @@ $('#impFile').onchange = async e => {
 
 /* ---------- tabs ---------- */
 function showTab(t){
+  if($('#detail').classList.contains('on')) closeDetail();   // leave an open run when switching tabs
   $('#todayView').classList.toggle('on', t === 'today');
   $('#recView').classList.toggle('on', t === 'rec');
   $('#actView').classList.toggle('on', t === 'act');
