@@ -654,21 +654,21 @@ function start(){
     cue(act.plan.idx ? act.plan.phases[act.plan.idx].kind : 'rest');   // the first beep also unlocks audio, which browsers only allow after a tap
     pendingPlan = null;
   }
-  buzz(60); lockScreen(); enableMotion(); saveDraft(true); render();
+  buzz(60); lockScreen(); enableMotion(); saveDraft(true); render(); syncGps(true);
 }
 function pause(){
   act.elapsed += Date.now() - act.tickAt; act.status = 'paused';
-  unlockScreen(); disableMotion(); saveDraft(true); render();
+  unlockScreen(); disableMotion(); saveDraft(true); render(); syncGps();
 }
 function resume(){
   act.tickAt = Date.now(); act.status = 'running'; act.segs.push([]); act.lastFix = null;
   beep(1, 1);   // wake the audio context from this tap so phase beeps keep working
-  lockScreen(); enableMotion(); saveDraft(true); render();
+  lockScreen(); enableMotion(); saveDraft(true); render(); syncGps(true);
 }
 function finish(){
   if(act.status === 'running') act.elapsed += Date.now() - act.tickAt;
   act.status = 'done';
-  unlockScreen(); disableMotion();
+  unlockScreen(); disableMotion(); syncGps();
   if(act.dist < 20){
     if(!confirm('That activity is under 20 m. Discard it?')){ act.status = 'paused'; act.tickAt = Date.now(); saveDraft(true); render(); return; }
     act = null; store.del('trackr.draft'); render(); return;
@@ -902,19 +902,59 @@ function onPosErr(e){
   if(e.code === 1) toast('Allow location access in your browser to record.');
 }
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-if(NATIVE && window.Capacitor.Plugins.BackgroundGeolocation){
-  // Android app: foreground-service GPS keeps running with the screen off or the app in the background
-  window.Capacitor.Plugins.BackgroundGeolocation.addWatcher({
-    backgroundMessage: 'Trackr is recording your run',
-    backgroundTitle: 'Trackr',
-    requestPermissions: true,
-    stale: false,
-    distanceFilter: 0
-  }, (loc, err) => {
-    if(err){ onPosErr({ code: err.code === 'NOT_AUTHORIZED' ? 1 : 2 }); return; }
-    onPos({ timestamp: loc.time, coords: { latitude: loc.latitude, longitude: loc.longitude, accuracy: loc.accuracy,
-      altitude: loc.altitude, speed: loc.speed, heading: loc.bearing } });
-  });
+const BG = NATIVE && window.Capacitor.Plugins.BackgroundGeolocation;
+// Android app: GPS runs in one of two modes. While recording, a foreground service keeps it going with the screen off
+// or the app in the background, and shows the "recording" notification. Otherwise a plain watcher feeds the GPS badge
+// and the map only while the app is on screen, so nothing keeps running (or draining the battery) once you leave.
+let gpsHave = null, gpsTok = null, gpsBusy = false, notifyAsked = false, gpsDenied = false;
+function gpsWant(){
+  if(gpsDenied) return null;   // location refused: wait for the next Start or Resume tap rather than asking again on every return to the app
+  if(act && act.status === 'running') return 'rec';
+  return document.visibilityState === 'visible' ? 'idle' : null;
+}
+async function askNotify(){
+  // Android 13+ hides the recording notification unless the app may post notifications. Ask once per launch, at Start.
+  const N = window.Capacitor.Plugins.TrackrNotify;
+  if(notifyAsked || !N) return;
+  notifyAsked = true;
+  try{ await N.request(); }catch(e){}
+}
+async function syncGps(retry){
+  if(retry === true) gpsDenied = false;
+  if(!BG || gpsBusy || gpsWant() === gpsHave) return;
+  gpsBusy = true;
+  const want = gpsWant(), old = gpsTok;
+  try{
+    if(want === 'rec') await askNotify();
+    let tok = null;
+    if(want){
+      tok = { id: null };
+      gpsTok = tok;   // from here on only this watcher's fixes count, so the overlap with the old one adds nothing twice
+      const opts = { requestPermissions: true, stale: false, distanceFilter: 0 };
+      if(want === 'rec'){ opts.backgroundTitle = 'Trackr'; opts.backgroundMessage = 'Recording your activity. Tap to open.'; }
+      tok.id = await BG.addWatcher(opts, (loc, err) => {
+        if(gpsTok !== tok) return;
+        if(err){
+          // the watcher is dead after an error; forget it so the next Start or return to the app tries again
+          gpsTok = null; gpsHave = null; dropWatcher(tok);
+          if(/service not running/i.test(err.message || '')){ setTimeout(syncGps, 1000); return; }   // plugin still starting up
+          if(err.code === 'NOT_AUTHORIZED'){ gpsDenied = true; syncGps(); }
+          onPosErr({ code: err.code === 'NOT_AUTHORIZED' ? 1 : 2 }); return;
+        }
+        onPos({ timestamp: loc.time, coords: { latitude: loc.latitude, longitude: loc.longitude, accuracy: loc.accuracy,
+          altitude: loc.altitude, speed: loc.speed, heading: loc.bearing } });
+      });
+    } else gpsTok = null;
+    gpsHave = want;
+    if(old) await dropWatcher(old);   // removing the last recording watcher also ends the notification
+  }catch(e){ gpsHave = null; }
+  gpsBusy = false;
+  if(gpsWant() !== gpsHave) syncGps();
+}
+async function dropWatcher(tok){ try{ if(tok && tok.id) await BG.removeWatcher({ id: tok.id }); }catch(e){} }
+if(BG){
+  document.addEventListener('visibilitychange', syncGps);
+  syncGps();
 } else if('geolocation' in navigator){
   navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy:true, maximumAge:0, timeout:20000 });
 } else {
