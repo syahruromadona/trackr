@@ -75,3 +75,9 @@ so a session with no cadence can be explained afterwards.
 - Deleting an activity marks it `deleted` in the database (the row stays, so it can be recovered from the Supabase table editor)
 - Setup: run [`supabase/trackr.sql`](supabase/trackr.sql) once in the project's SQL editor, and put the project URL and publishable key in `SUPABASE_URL` / `SUPABASE_KEY` near the end of `index.html`
 - There is no sign-in. The publishable key is public in this repo, so anyone who has it can read and change the synced data
+
+## Android app
+
+- A Capacitor wrapper (`android/`) adds background GPS. GitHub Actions builds a debug APK (artifact `trackr-debug-apk`)
+- The app loads Trackr from GitHub Pages (`server.url` in `capacitor.config.json`), so a change merged to `main` reaches the phone on its next launch, with no new APK. A new APK is only needed when native code, plugins or `capacitor.config.json` change
+- The service worker keeps a copy for offline launches. If the very first launch has no connection, the app shows `offline.html`

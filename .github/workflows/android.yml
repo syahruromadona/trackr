@@ -2,7 +2,7 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    paths: ['index.html', 'android/**', 'package.json', 'capacitor.config.json', '.github/workflows/android.yml']
+    paths: ['index.html', 'offline.html', 'scripts/**', 'android/**', 'package.json', 'capacitor.config.json', '.github/workflows/android.yml']
 jobs:
   apk:
     runs-on: ubuntu-latest
