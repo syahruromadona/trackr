@@ -2392,7 +2392,7 @@ if(draft && draft.segs && (draft.status === 'running' || draft.status === 'pause
   document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
   toast('Restored your unfinished activity (paused).');
 }
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => {});
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});   // also in the Android app, which loads from GitHub Pages and needs this cache to open offline
 protectStorage();
 render(); renderList(); drawSpark();
 if(act) showTab('rec'); else renderToday();   // opening the app mid-run goes to the run; otherwise to today's briefing
