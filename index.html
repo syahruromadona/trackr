@@ -110,7 +110,46 @@ input,select{-webkit-user-select:text;user-select:text}
 .plan .pr{text-align:right;font-size:14px;line-height:1.35}
 .planchip{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);padding:6px 8px 6px 16px;font-size:14px}
 .planchip button{border:0;background:none;color:var(--muted);font:inherit;font-size:22px;cursor:pointer;padding:2px 10px}
-#todayView{overflow:auto;padding:12px 16px 20px;gap:12px}
+#todayView,#gymView{overflow:auto;padding:12px 16px 20px;gap:12px}
+.fld textarea{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:16px;width:100%;resize:vertical}
+#gymView{padding-bottom:0}#gymBody{display:flex;flex-direction:column;gap:12px;min-height:100%}
+.ghd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 -2px}
+.ghd h1{margin:0;font-size:24px;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
+.gtpl{display:block;width:100%;text-align:left;font:inherit;color:var(--ink)}
+.gtpl .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.gtpl .nm{font-size:20px;font-weight:800;line-height:1.2}
+.gbadge{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
+.gexl{margin-top:10px}.gexl div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:15px}.gexl b{font-variant-numeric:tabular-nums}
+.glink{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:6px 0}
+.grow2{display:flex;gap:8px;margin-top:12px}.grow2 .btn{min-height:46px;font-size:15px}
+.gfab{position:sticky;bottom:14px;align-self:flex-end;margin-top:auto;border:0;border-radius:999px;padding:14px 26px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;font-size:16px;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:5}
+.gs{border-top:1px solid var(--line);padding:10px 0;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.gs:first-of-type{border-top:0}
+.gs .gn{white-space:pre-wrap;font-size:13px;color:var(--muted);margin-top:4px}
+.gx{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 6px;line-height:1}
+.gedrow{display:grid;grid-template-columns:1fr 52px 52px 64px 28px;gap:6px;align-items:end;margin-top:8px}
+.gedrow input{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 6px;font:inherit;font-size:16px;width:100%;min-width:0;text-align:center}
+.gedrow input.n{text-align:left;padding-left:10px}
+.gedhd{display:grid;grid-template-columns:1fr 52px 52px 64px 28px;gap:6px;font-size:11px;color:var(--muted);margin-top:10px;text-align:center}.gedhd span:first-child{text-align:left}
+.gtitle{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:18px;font-weight:700}
+.glive-hd{display:flex;align-items:center;gap:10px;position:sticky;top:-12px;background:var(--bg);padding:8px 0;z-index:4}
+.glive-hd .t{flex:1;min-width:0}.glive-hd .t div:first-child{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.glive-hd .clock{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.gback{border:0;background:var(--card);color:var(--ink);border-radius:10px;width:42px;height:42px;font-size:22px;cursor:pointer;flex:none}
+.gex .eh{display:flex;align-items:center;gap:10px;cursor:pointer}
+.gex .eh .chev{color:var(--muted);width:18px;text-align:center;font-size:14px;flex:none}
+.gex .eh .nm{flex:1;font-weight:800;font-size:17px;line-height:1.25}
+.gex .eh .sub{font-weight:400;font-size:13px;color:var(--muted);margin-top:2px}
+.gset{display:grid;grid-template-columns:30px 22px 1fr 30px 1fr 40px;align-items:center;gap:6px;background:var(--bg);border-radius:12px;padding:8px 10px;margin-top:8px;border-left:4px solid transparent}
+.gset.next{border-left-color:var(--accent)}.gset.done{opacity:.6}
+.gset .ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);background:none;cursor:pointer;padding:0;color:#fff;font-size:14px;font-weight:800}
+.gset.done .ck{background:#16a34a;border-color:#16a34a}
+.gset .ix{font-weight:800}
+.gset input{background:var(--card);color:var(--ink);border:0;border-radius:10px;padding:10px 4px;font:inherit;font-size:18px;font-weight:700;text-align:center;width:100%;min-width:0}
+.gset input::-webkit-inner-spin-button,.gset input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.gset input{-moz-appearance:textfield}
+.gset small{font-size:12px;font-weight:700;color:var(--muted)}
+.gadd{display:block;width:100%;margin-top:8px;border:0;border-radius:12px;padding:12px;background:var(--bg);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.gbar2{position:sticky;bottom:0;margin:auto -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line);display:flex;gap:8px;z-index:5}
+.gbar2 .btn{min-height:52px;font-size:15px}.gbar2 .btn.primary{flex:2;letter-spacing:.5px}
 .plan.easy{background:#0f766e}.plan.test{background:var(--accent)}
 details.more>summary{cursor:pointer;font-weight:700;background:var(--card);border-radius:14px;padding:14px}
 details.more .mbody{display:flex;flex-direction:column;gap:12px;margin-top:12px}
@@ -193,86 +232,10 @@ details.panel summary{cursor:pointer;font-weight:700}
 
 <main>
   <section id="todayView" class="view on">
-    <div class="panel" id="tHead"></div>
-    <div class="panel" id="tGoal"></div>
     <div class="panel" id="tWeek"></div>
-    <div class="panel" id="tSession"></div>
-    <div class="panel" id="tLast" hidden></div>
-    <div class="panel" id="tReview">
-      <h2>Weekly review with Claude</h2>
-      <div class="vsub">Copies your last four weeks, your VO2max, your recent sessions and today's plan, with three reflection questions. Paste it into Claude to get a coach's review and a plan for next week. It has no locations or names.</div>
-      <div class="controls" style="margin-top:10px"><button class="btn primary" id="sumCopy" style="min-height:48px;font-size:16px">Copy my training summary</button></div>
-      <textarea class="sumbox" id="sumBox" hidden readonly aria-label="Training summary"></textarea>
-    </div>
-    <div class="panel" id="tLog">
-      <h2>Log other activity</h2>
-      <div class="vsub">Gym sessions and walks you don't record with GPS still count towards your week.</div>
-      <div class="fld">
-        <label>What<select id="lgType"><option value="Strength">Gym: weights / strength</option><option value="Cardio">Gym: cardio / other</option><option value="Walking">Walk</option></select></label>
-        <label>Minutes<input id="lgMin" type="number" inputmode="numeric" value="45" min="5" max="240" step="5"></label>
-        <label>When<select id="lgDay"><option value="0">Today</option><option value="1">Yesterday</option><option value="2">2 days ago</option></select></label>
-        <button class="sbtn" id="lgAdd">Log it</button>
-      </div>
-    </div>
-    <details class="more" id="trainView"><summary>VO2max, paces and sessions</summary><div class="mbody">
-    <div class="panel" id="longPanel"></div>
-    <div class="panel">
-      <h2>VO2max</h2>
-      <div class="vbig" id="vEst">--</div>
-      <div class="vsub" id="vSub"></div>
-      <canvas id="vchart" aria-label="VO2max trend by month"></canvas>
-      <div class="vsub" id="vLegend"></div>
-      <div id="vList"></div>
-      <div class="fld">
-        <label>Reading<input id="vIn" type="number" inputmode="decimal" min="10" max="95" step="0.1" placeholder="e.g. 48"></label>
-        <label>Source<select id="vSrc"><option>Watch</option><option>Lab test</option><option>Cooper test</option><option>Other</option></select></label>
-        <button class="sbtn" id="vAdd">Log it</button>
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Target paces</h2>
-      <div class="seg" id="refSeg"><button data-ref="est">From estimate</button><button data-ref="log">From logged</button></div>
-      <div class="vsub" id="refNote" style="margin:0 0 6px"></div>
-      <div id="zones"></div>
-    </div>
-    <div class="panel">
-      <h2>VO2max sessions</h2>
-      <div id="sessions"></div>
-      <div class="fld">
-        <label>Reps<input id="cReps" type="number" inputmode="numeric" value="6" min="1" max="30"></label>
-        <label>Work (min)<input id="cWork" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
-        <label>Rest (min)<input id="cRest" type="number" inputmode="decimal" value="2" min="0.25" step="0.25"></label>
-        <label>From %<input id="cLo" type="number" inputmode="numeric" value="95" min="60" max="130"></label>
-        <label>To %<input id="cHi" type="number" inputmode="numeric" value="102" min="60" max="130"></label>
-        <button class="sbtn" id="cGo">Start custom</button>
-      </div>
-      <div class="vsub">Targets are % of your speed at VO2max, shown as min/km. Rests are free-pace jogs; a 10 min warm-up and 5 min cool-down are added (tap Next to skip).</div>
-    </div>
-    <div class="panel">
-      <h2>Weekly distance (km)</h2>
-      <div class="wk" id="wk"></div>
-    </div>
-    </div></details>
-    <details class="panel" id="pbPanel"><summary>Personal bests (from your Strava history)</summary><div id="pbBody"></div></details>
-    <details class="panel" id="tSet">
-      <summary>Coach settings</summary>
-      <div class="vsub" style="margin-top:8px">Days you can train (untick any day you can't). The coach decides which of them are runs and which are recovery, and builds up gradually.</div>
-      <div class="chips" id="dayChips"></div>
-      <div class="fld">
-        <label>Longest run (min)<input id="maxLong" type="number" inputmode="numeric" min="30" max="240" step="5"></label>
-        <label>Max runs / week<input id="maxRuns" type="number" inputmode="numeric" min="3" max="6"></label>
-      </div>
-      <div class="vsub" style="margin-top:12px">About you (saved on this phone and in your Supabase backup). Used to compare your VO2max with people your age and sex.</div>
-      <div class="fld">
-        <label>Birth date<input id="pBirth" type="date" style="width:150px"></label>
-        <label>Sex<select id="pSex"><option value="">Choose</option><option value="M">Male</option><option value="F">Female</option></select></label>
-      </div>
-      <div class="fld"><label style="flex:1">My goal, in one line (goes into the weekly summary)<input id="pGoal" type="text" maxlength="140" style="width:100%" placeholder="e.g. keep getting fitter for the sake of it"></label></div>
-      <div class="vsub" style="margin-top:14px"><b>Sensor check.</b> Cadence needs the phone's motion sensor. Tap the button, then walk briskly or jog on the spot for 15 seconds, with the phone in your pocket or armband.</div>
-      <div class="controls" style="margin-top:8px"><button class="btn" id="senBtn" style="min-height:48px;font-size:15px">Check motion sensor</button></div>
-      <div class="vsub" id="senOut" style="margin-top:8px;line-height:1.5"></div>
-    </details>
   </section>
+
+  <section id="gymView" class="view"><div id="gymBody"></div></section>
 
   <section id="recView" class="view">
     <div class="hero">
@@ -351,6 +314,7 @@ details.panel summary{cursor:pointer;font-weight:700}
 <nav>
   <button id="tabToday" class="on">Today</button>
   <button id="tabRec">Record</button>
+  <button id="tabGym">Gym</button>
   <button id="tabAct">Activities</button>
 </nav>
 
@@ -796,59 +760,6 @@ async function enableMotion(){
   }catch(e){}
 }
 function disableMotion(){ window.removeEventListener('devicemotion', onMotion); motionOn = false; stepT = []; cadSmooth = null; renderCad(); }
-// Sensor check: does motion data reach the app at all, and can it count steps? Tells you what to fix if not.
-let senBusy = false;
-async function sensorCheck(){
-  if(senBusy) return; senBusy = true;
-  const out = $('#senOut'), btn = $('#senBtn'); btn.disabled = true;
-  let ask = 'not needed';
-  try{   // iPhone only asks from a tap, so this goes first, before anything else is awaited
-    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function')
-      ask = await Promise.race([DeviceMotionEvent.requestPermission(), new Promise(r => setTimeout(() => r('no answer'), 4000))]);   // some browsers define it but never answer
-  }catch(e){ ask = 'error: ' + e.message; }
-  let perm = 'unknown';
-  try{ if(navigator.permissions && navigator.permissions.query) perm = (await navigator.permissions.query({ name: 'accelerometer' })).state; }catch(e){}
-  let n = 0, nulls = 0, lo = Infinity, hi = -Infinity;
-  const h = e => { const a = e.accelerationIncludingGravity; if(!a || a.x == null){ nulls++; return; } n++; const m = Math.hypot(a.x, a.y, a.z); if(m < lo) lo = m; if(m > hi) hi = m; };
-  window.addEventListener('devicemotion', h);
-  const wasOn = motionOn; if(!wasOn) await enableMotion();   // also runs the app's own step counter so its reading can be shown
-  let gen = 'not available', gn = 0, sensor = null;
-  try{   // a second route to the same sensor
-    if(typeof Accelerometer !== 'undefined'){
-      sensor = new Accelerometer({ frequency: 30 });
-      sensor.addEventListener('reading', () => { gn++; });
-      sensor.addEventListener('error', e => { gen = 'error: ' + (e.error && e.error.name); });
-      sensor.start(); gen = 'started';
-    }
-  }catch(e){ gen = 'error: ' + e.name; }
-  const t0 = Date.now(), T = 15000;
-  while(Date.now() - t0 < T){
-    const s = (Date.now() - t0)/1000;
-    out.innerHTML = `Checking… ${Math.ceil(T/1000 - s)} s left. Keep moving.<br>Motion readings so far: <b>${n}</b>${s > 1 ? ` (${Math.round(n/s)} per second)` : ''}${nulls ? `, empty ones: ${nulls}` : ''}${cadSmooth ? `<br>Cadence so far: <b>${Math.round(cadSmooth)} spm</b>` : ''}`;
-    await new Promise(r => setTimeout(r, 400));
-  }
-  window.removeEventListener('devicemotion', h);
-  try{ sensor && sensor.stop(); }catch(e){}
-  const cad = cadSmooth ? Math.round(cadSmooth) : null;
-  if(!wasOn && !act) disableMotion();
-  const genTxt = gen === 'started' ? (gn > 0 ? `works (${gn} readings)` : 'no readings') : gen;
-  let verdict, short;
-  const blocked = n === 0 && (nulls > 0 || perm === 'denied' || ask === 'denied' || /NotAllowed|Security/.test(gen));
-  if(blocked){ short = 'blocked by the browser' + (perm === 'denied' ? ' (permission denied)' : nulls ? ' (empty motion events)' : ''); verdict = `<b>Blocked.</b> The browser is not allowing this page to use the motion sensor${perm === 'denied' ? ' (it reports the permission as denied)' : ''}. Fix: tap the icon at the left of the address bar, open Permissions (or Site settings), set <b>Motion sensors</b> to Allow, reload the page and run this check again. In Brave, also open the Shields icon and turn off blocking for this site.`; }
-  else if(n === 0){ short = 'no motion events at all'; verdict = '<b>No motion data at all.</b> Nothing arrived, so this browser or phone is not sending motion readings to the page. Try Chrome, check the phone\'s sensor/privacy settings, and make sure the page is the https link.'; }
-  else if(hi - lo < 3){ short = `readings arrive (${n}) but barely move`; verdict = `<b>The sensor works, but I saw almost no movement.</b> Walk briskly or jog on the spot with the phone in your pocket or armband, then run the check again.`; }
-  else if(cad){ short = `working, cadence ${cad} spm`; verdict = `<b>Working.</b> Cadence read ${cad} steps per minute.`; }
-  else { short = `readings arrive (${n}) but no steps recognised`; verdict = `<b>The sensor works, but I could not pick out your steps.</b> Try again while walking briskly or jogging, with the phone in a pocket or armband (not held loosely in the hand).`; }
-  store.set('trackr.sensor', { when: Date.now(), n, nulls, short });
-  out.innerHTML = `${verdict}<br><span style="color:var(--muted)">Details: https ${window.isSecureContext ? 'yes' : 'NO'} · motion API ${typeof DeviceMotionEvent !== 'undefined' ? 'yes' : 'NO'} · permission ${perm}${ask !== 'not needed' ? ' · iPhone prompt ' + ask : ''} · readings ${n} (${Math.round(n/(T/1000))}/s), empty ${nulls}${n ? ` · range ${lo.toFixed(1)}–${hi.toFixed(1)} m/s²` : ''} · second route (Accelerometer API) ${genTxt}</span>`;
-  btn.disabled = false; senBusy = false;
-}
-function renderSensorLast(){
-  const o = $('#senOut'), s = store.get('trackr.sensor', null);
-  if(!o || senBusy) return;
-  o.textContent = s ? `Last check, ${new Date(s.when).toLocaleDateString(undefined, { day:'numeric', month:'short' })}: ${s.short}.` : '';
-}
-$('#senBtn').onclick = sensorCheck;
 function renderCad(){ const el = $('#curCad'); if(el) el.textContent = cadSmooth && act && act.status === 'running' ? Math.round(cadSmooth) : '--'; }
 function cadProfile(arr){   // per-second readings (0 = none) to 10 s averages
   const v = [];
@@ -861,7 +772,7 @@ function onPos(pos){
   const c = pos.coords;
   me = [c.latitude, c.longitude];
   updateSpeed(c, pos.timestamp || Date.now());
-  renderSpeed(); renderSpot();
+  renderSpeed();
   if(!meDot){
     meDot = L.circleMarker(me, {radius:8, color:'#fff', weight:3, fillColor:'#2563eb', fillOpacity:1}).addTo(map);
     meAcc = L.circle(me, {radius:c.accuracy, color:'#2563eb', weight:1, fillOpacity:.1}).addTo(map);
@@ -1266,111 +1177,6 @@ function launch(plan){   // hand a plan to the Record screen; the user presses S
   showTab('rec'); render();
   toast(`${plan.name} ready — press Start`);
 }
-function startPlan(p){
-  const ref = reference(vo2Estimates());
-  if(!ref){ toast('Log a VO2max reading first, or run the 12-minute test.'); return; }
-  launch(buildPlan(p, velAtVo2(ref.v)));
-}
-function fmtMonthYear(t){ return new Date(t).toLocaleDateString(undefined, { month:'short', year:'numeric' }); }
-function renderTrain(){
-  const est = vo2Estimates(), lg = loggedReadings(), ref = reference(est);
-  $('#vEst').textContent = est.recent ? est.recent.v.toFixed(1) : (lg[0] ? lg[0].value.toFixed(1) : '--');
-  $('#vSub').textContent = est.recent
-    ? `estimated from your best effort in the last 90 days · peak ${est.peak.v.toFixed(1)} (${fmtMonthYear(est.peak.t)})`
-    : est.peak ? `no hard efforts in the last 90 days · your peak was ${est.peak.v.toFixed(1)} (${fmtMonthYear(est.peak.t)})`
-    : 'Record some runs, or log a reading, to start.';
-  $('#vLegend').innerHTML = (est.months.length ? '<span style="color:var(--accent)">●</span> monthly best effort estimate ' : '') + (lg.length ? ' <span style="color:#2563eb">●</span> your logged readings' : '');
-  $('#vList').innerHTML = lg.slice(0, 4).map(r =>
-    `<div class="vlog"><span><b>${r.value.toFixed(1)}</b> · ${r.source} · ${new Date(r.date).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</span><button data-del="${r.id}" aria-label="Delete reading">×</button></div>`).join('');
-  drawVChart(est.months, lg);
-
-  const seg = $('#refSeg').children;
-  const pref = ref ? ref.kind : null;
-  seg[0].classList.toggle('on', pref === 'est'); seg[1].classList.toggle('on', pref === 'log');
-  seg[0].disabled = !est.recent; seg[1].disabled = !lg.length;
-  const z = $('#zones'), s = $('#sessions');
-  if(!ref){
-    $('#refNote').textContent = '';
-    z.innerHTML = s.innerHTML = '<div class="vsub">Needs a VO2max value first.</div>';
-  } else {
-    const vv = velAtVo2(ref.v);
-    $('#refNote').textContent = `Based on ${ref.label}. Pace at VO2max: ${fmtPaceSec(1000/vv)} min/km.`;
-    const rng = (lo, hi) => `${fmtPaceSec(1000/(vv*hi))}–${fmtPaceSec(1000/(vv*lo))} min/km`;
-    z.innerHTML = ZONES.map(([n, lo, hi]) => { const a = rng(lo, hi); return `<div class="zone"><span>${n}<small>${Math.round(lo*100)}–${Math.round(hi*100)}% of VO2max speed</small></span><span class="r">${a}</span></div>`; }).join('');
-    s.innerHTML = PRESETS.map((p, i) => { const [a] = rng(p.lo, p.hi); return `<div class="sess"><span><b>${p.name}</b><small>${p.reps} × ${fmtDur(p.work)} @ ${a} · rest ${fmtDur(p.rest)}</small></span><button class="btn primary" data-p="${i}">Start</button></div>`; }).join('');
-  }
-  s.innerHTML += `<div class="sess"><span><b>12-min Cooper test</b><small>Steady hard effort. Logs a VO2max reading when done</small></span><button class="btn" data-test="1">Start</button></div>`;
-  renderWeekly();
-  renderLongevity(ref);
-}
-// Where this VO2max sits for your age and sex, and what the next milestones are worth.
-function renderLongevity(ref){
-  const el = $('#longPanel'), nr = normRow(profile());
-  if(!nr){ el.innerHTML = '<h2>Longevity</h2><div class="vsub">Add your birth date and sex in Coach settings (Today tab) to see how your VO2max compares with people your age.</div>'; return; }
-  if(!ref){ el.innerHTML = '<h2>Longevity</h2><div class="vsub">Log a VO2max reading or run the 12-minute test to see where you stand.</div>'; return; }
-  const q = pctOf(ref.v, nr.row), who = `${nr.sex === 'M' ? 'men' : 'women'} aged ${Math.floor(nr.age/10)*10}–${Math.floor(nr.age/10)*10 + 9}`;
-  const goals = [[25, 'Out of the lowest band'], [50, 'Average for your age'], [75, 'High: where most of the benefit is'], [90, 'Top 10%']]
-    .map(([p, label]) => { const v = valAtPct(nr.row, p), d = v - ref.v; return `<div class="zone"><span>${ordinal(p)} percentile<small>${label}</small></span><span class="r">${v.toFixed(1)}<small>${d > 0 ? '+' + d.toFixed(1) + ' to go' : 'reached ✓'}</small></span></div>`; }).join('');
-  el.innerHTML = `<h2>Longevity</h2><div class="vbig" style="font-size:34px">${fitBand(q.p)}</div>
-    <div class="vsub">${ref.v.toFixed(1)} ml/kg/min is ${q.txt} for ${who}.</div><div style="margin-top:8px">${goals}</div>
-    <div class="vsub" style="margin-top:10px">In a study of about 122,000 adults, the least fit group had roughly five times the death risk of the fittest, and the benefit kept rising with fitness (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6324439" target="_blank" rel="noopener" style="color:var(--accent)">Mandsager et al., 2018</a>). That is observational: fitness is a strong marker, not proof of cause. Consistent training commonly raises VO2max by 10–20% in the first year.</div>
-    <div class="vsub" style="margin-top:6px">Reference: FRIEND registry 2022, lab-measured on treadmills. A GPS or watch estimate is approximate, so retest with the 12-minute test every couple of months.</div>`;
-}
-function drawVChart(months, logs){
-  const cv = $('#vchart'); if(!cv.clientWidth) return;
-  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
-  cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
-  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  const pts = months.map(m => ({ t: m.t, v: m.v })), lp = logs.map(r => ({ t: r.date, v: r.value }));
-  const all = pts.concat(lp); if(!all.length) return;
-  const css = getComputedStyle(document.documentElement), acc = css.getPropertyValue('--accent').trim(), mut = css.getPropertyValue('--muted').trim(), grid = css.getPropertyValue('--line').trim();
-  const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(Date.now(), ...all.map(p => p.t));
-  const vmin = Math.floor(Math.min(...all.map(p => p.v)) - 2), vmax = Math.ceil(Math.max(...all.map(p => p.v)) + 2);
-  const L0 = 30, R0 = 8, T0 = 8, B0 = 18;
-  const X = t => L0 + (t1 === t0 ? .5 : (t - t0)/(t1 - t0))*(w - L0 - R0), Y = v => T0 + (1 - (v - vmin)/(vmax - vmin))*(h - T0 - B0);
-  g.font = '11px system-ui,sans-serif'; g.fillStyle = mut; g.strokeStyle = grid; g.lineWidth = 1;
-  [vmin, (vmin + vmax)/2, vmax].forEach(v => { g.beginPath(); g.moveTo(L0, Y(v)); g.lineTo(w - R0, Y(v)); g.stroke(); g.fillText(String(Math.round(v)), 2, Y(v) + 4); });
-  g.textAlign = 'left'; g.fillText(String(new Date(t0).getFullYear()), L0, h - 3);
-  g.textAlign = 'right'; g.fillText(String(new Date(t1).getFullYear()), w - R0, h - 3);
-  if(pts.length > 1){ g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p.t), Y(p.v)) : g.moveTo(X(p.t), Y(p.v))); g.lineWidth = 2; g.strokeStyle = acc; g.lineJoin = 'round'; g.stroke(); }
-  g.fillStyle = acc; pts.forEach(p => { g.beginPath(); g.arc(X(p.t), Y(p.v), pts.length > 40 ? 1.8 : 3, 0, 7); g.fill(); });
-  g.fillStyle = '#2563eb'; lp.forEach(p => { g.beginPath(); g.arc(X(p.t), Y(p.v), 5, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.stroke(); });
-}
-function renderWeekly(){
-  const acts = store.get('trackr.acts', []), now = new Date();
-  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7)).getTime();
-  const weeks = [];
-  for(let i = 7; i >= 0; i--){
-    const a = mon - i*7*DAY, b = a + 7*DAY;
-    weeks.push({ a, km: acts.filter(x => x.date >= a && x.date < b).reduce((s, x) => s + x.dist, 0)/1000 });
-  }
-  const max = Math.max(10, ...weeks.map(w => w.km));
-  $('#wk').innerHTML = weeks.map(w => `<div><span>${w.km ? w.km.toFixed(0) : ''}</span><i style="height:${Math.max(2, w.km/max*70)}px"></i><span>${new Date(w.a).getDate()}/${new Date(w.a).getMonth() + 1}</span></div>`).join('');
-}
-$('#trainView').ontoggle = () => { if($('#trainView').open) renderTrain(); };   // the chart needs a visible width
-$('#sessions').onclick = e => {
-  if(e.target.closest('button[data-test]')){ launch(makeSession('test', { vv: 0, acts: [], cfg: coachCfg() })); return; }
-  const b = e.target.closest('button[data-p]'); if(b) startPlan(PRESETS[+b.dataset.p]);
-};
-$('#cGo').onclick = () => {
-  const n = id => parseFloat($(id).value);
-  const reps = Math.round(n('#cReps')), work = n('#cWork')*60, rest = n('#cRest')*60, lo = n('#cLo')/100, hi = n('#cHi')/100;
-  if(!(reps >= 1 && reps <= 30 && work >= 15 && rest >= 0 && lo > .5 && hi >= lo && hi < 1.4)){ toast('Check the custom session numbers.'); return; }
-  startPlan({ name: `${reps} × ${fmtDur(Math.round(work))} custom`, reps, work: Math.round(work), rest: Math.round(rest), lo, hi });
-};
-$('#refSeg').onclick = e => { const b = e.target.closest('button[data-ref]'); if(b && !b.disabled){ store.set('trackr.ref', b.dataset.ref); renderTrain(); } };
-$('#vAdd').onclick = () => {
-  const v = parseFloat($('#vIn').value);
-  if(!(v >= 10 && v <= 95)){ toast('Enter a VO2max between 10 and 95.'); return; }
-  const list = store.get('trackr.vo2', []);
-  list.push({ id: 'v' + Date.now(), date: Date.now(), value: v, source: $('#vSrc').value });
-  store.set('trackr.vo2', list); store.set('trackr.ref', 'log'); $('#vIn').value = '';
-  renderTrain(); toast('Reading logged');
-};
-$('#vList').onclick = e => {
-  const b = e.target.closest('button[data-del]'); if(!b) return;
-  store.set('trackr.vo2', store.get('trackr.vo2', []).filter(r => r.id !== b.dataset.del)); renderTrain();
-};
 
 /* ---------- coach: the daily briefing ---------- */
 // Reference VO2max percentiles (ml/kg/min) at the 10th..90th percentile, treadmill-measured:
@@ -1561,68 +1367,6 @@ function doneCardHtml(a, b){
   }
   return html + `<div class="vsub" style="margin-top:10px">Eat, drink and stretch: recovery starts now.</div>`;
 }
-// A plain-text summary for pasting into Claude for a review. No locations or names, just the training.
-function buildSummary(){
-  const acts = store.get('trackr.acts', []).slice().sort((x, y) => y.date - x.date);
-  const est = vo2Estimates(), ref = reference(est), pr = profile(), nr = normRow(pr), cfg = coachCfg(), b = coachBrief();
-  const run = x => !/walk|strength|cardio/i.test(x.type);
-  const L = [];
-  L.push('Please act as my running coach. Below is my Trackr training summary. Review the last weeks: say what is going well, what worries you, and what I should change in my plan. Be honest and specific, and ask me anything you need.');
-  L.push('');
-  L.push(`DATE: ${new Date().toDateString()}`);
-  if(nr) L.push(`ME: ${nr.sex === 'M' ? 'male' : 'female'}, age ${nr.age}`);
-  if(pr && pr.goal) L.push(`MY GOAL: ${pr.goal}`);
-  L.push(`COACH SETTINGS: can train ${cfg.days.map(d => DOW[d]).join(', ')}; up to ${cfg.maxRuns} runs a week; longest run ${cfg.maxLong} min`);
-  if(ref){
-    const q = nr ? pctOf(ref.v, nr.row) : null;
-    L.push(`VO2MAX: ${ref.v.toFixed(1)} ml/kg/min (${ref.kind === 'log' ? 'a logged reading' : 'estimated from my runs'})${q ? `, ${q.txt} for my age and sex (${fitBand(q.p)})` : ''}; my pace at VO2max is ${kmh(velAtVo2(ref.v))} min/km`);
-  }
-  const sn = store.get('trackr.sensor', null);
-  if(sn) L.push(`MOTION SENSOR (checked ${new Date(sn.when).toLocaleDateString()}): ${sn.short}`);
-  const pbOf = n => PB.find(r => r[0] === n);
-  L.push(`PERSONAL BESTS (from my Strava history): ${['1 km', '5 km', '10 km', 'Half marathon'].map(n => `${n} ${pbOf(n)[1][0]}`).join(', ')}; my best 5 km in 2026 so far is ${pbOf('5 km')[2][6]}`);
-  const lg = loggedReadings();
-  if(lg.length) L.push('VO2MAX READINGS: ' + lg.map(r => `${r.value.toFixed(1)} (${r.source}, ${new Date(r.date).toLocaleDateString()})`).join('; '));
-  L.push('');
-  L.push('LAST 4 WEEKS (Monday to Sunday):');
-  const w0 = startOfDay(Date.now()) - ((new Date().getDay() + 6) % 7)*DAY;
-  for(let i = 3; i >= 0; i--){
-    const a0 = w0 - i*7*DAY, a1 = a0 + 7*DAY, w = acts.filter(x => x.date >= a0 && x.date < a1), r = w.filter(run);
-    L.push(`- week of ${new Date(a0).toLocaleDateString(undefined, { day:'numeric', month:'short' })}: ${r.length} run${r.length === 1 ? '' : 's'}, ${(r.reduce((s, x) => s + x.dist, 0)/1000).toFixed(1)} km, ${r.filter(isHard).length} hard sessions, strength ${w.filter(x => x.type === 'Strength').length}, other logged activity ${Math.round(w.filter(x => x.manual && x.type !== 'Strength').reduce((s, x) => s + x.time, 0)/60000)} min, active total ${Math.round(w.reduce((s, x) => s + x.time, 0)/60000)} min`);
-  }
-  L.push('');
-  L.push('LAST 10 SESSIONS (newest first):');
-  acts.slice(0, 10).forEach(x => {
-    const d = new Date(x.date).toLocaleDateString(undefined, { day:'numeric', month:'short' });
-    if(x.manual){ L.push(`- ${d}: ${x.type === 'Strength' ? 'gym weights' : x.type === 'Cardio' ? 'gym cardio' : 'walk'}, ${Math.round(x.time/60000)} min (logged by hand)`); return; }
-    let s = `- ${d}: ${x.type}${x.plan ? ' (' + x.plan + ')' : ''}, ${(x.dist/1000).toFixed(2)} km in ${fmtTime(x.time)} (${fmtPace(x.time, x.dist)} min/km)`;
-    if(x.coach) s += `. ${coachNote(x.coach)}`;
-    const det = detectReps(x);
-    if(!x.coach && det && det.reps.length >= 3) s += `. Fast parts found: ${det.reps.length} reps averaging ${fmtPaceSec(det.reps.reduce((p, r) => p + r.dur, 0)/det.reps.reduce((p, r) => p + r.dist, 0)*1000)} min/km`;
-    if(x.cad && x.cad.v){ const ok = x.cad.v.filter(v => v > 0); if(ok.length) s += `. Cadence ${Math.round(ok.reduce((p, q) => p + q, 0)/ok.length)} spm`; }
-    L.push(s);
-  });
-  L.push('');
-  L.push(`WHAT THE COACH SAYS FOR TODAY: ${b.mode === 'run' ? b.session.title : b.mode === 'rest' ? 'rest day' : 'already trained today'}`);
-  b.why.forEach(w => L.push(`- ${w}`));
-  L.push('');
-  L.push('MY REFLECTION (I will fill this in):');
-  L.push('- What was hardest this week?');
-  L.push('- What did I learn about myself?');
-  L.push('- What do I want from next week?');
-  return L.join('\n');
-}
-function usualSpot(){
-  const pts = runsOnly().filter(a => daysAgo(a.date) <= 180 && a.segs[0] && a.segs[0][0]).map(a => a.segs[0][0]);
-  return pts.length < 3 ? null : [median(pts.map(p => p[0])), median(pts.map(p => p[1]))];
-}
-function renderSpot(){
-  const el = $('#spotTxt'); if(!el) return;
-  const sp = usualSpot(); if(!sp){ el.textContent = ''; return; }
-  if(!me){ el.textContent = '● Finding your location…'; return; }
-  const d = hav(sp, me);
-  el.textContent = d < 500 ? '● You\'re at your usual running spot' : `● ${d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'} from your usual running spot`;
-}
 let brief = null;
 function coachBrief(){
   const est = vo2Estimates(), ref = reference(est), cfg = coachCfg(), acts = runsOnly(), dow = new Date().getDay();
@@ -1680,87 +1424,8 @@ function coachBrief(){
 }
 function renderToday(){
   brief = coachBrief();
-  const b = brief, now = new Date(), hr = now.getHours();
-  const wkStart = startOfDay(Date.now()) - ((now.getDay() + 6) % 7)*DAY;
-  const wk = b.acts.filter(a => a.date >= wkStart);
-  const nrm = normRow(profile()), bandTxt = nrm && b.ref ? ' · ' + fitBand(pctOf(b.ref.v, nrm.row).p) : '';
-  $('#tHead').innerHTML =
-    `<div class="vsub">${now.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' })}</div>
-     <div class="ttl" style="font-size:28px">Good ${hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening'}</div>
-     <div class="spot" id="spotTxt"></div>
-     <span class="pill">VO2max ${b.ref ? b.ref.v.toFixed(1) : '--'}${bandTxt}</span><span class="pill">Last 7 days: ${Math.round(b.activeMin)}/150 min</span><span class="pill">Strength ${b.strength7}/2</span><span class="pill">This week ${(wk.reduce((s, a) => s + a.dist, 0)/1000).toFixed(1)} km · ${wk.length} run${wk.length === 1 ? '' : 's'}</span><span class="pill">${b.last ? (b.since === 0 ? 'Ran today' : `Last run ${b.since} day${b.since === 1 ? '' : 's'} ago`) : 'No runs yet'}</span>`;
-  renderSpot();
-  const S = $('#tSession');
-  const why = b.why.length ? `<ul class="why">${b.why.map(w => `<li>${w}</li>`).join('')}</ul>` : '';
-  const next = b.next ? `<div class="vsub" style="margin-top:10px">${b.next}</div>` : '';
-  if(b.mode === 'run'){
-    const s = b.session;
-    S.innerHTML = `<h2>Today's session</h2><div class="ttl">${s.title}</div><div class="vsub">about ${Math.round(s.total/60)} min${s.levelTxt ? ' · ' + s.levelTxt : ''}</div>
-      <div style="margin-top:8px">${describePlan(s)}</div>${why}
-      <div class="controls"><button class="btn primary" data-do="start">Start session</button></div>
-      <div class="alt">${b.alt && b.kind !== 'easy' && b.kind !== 'comeback' ? '<button data-do="easier">Make it easier</button>' : ''}<button data-do="rest">Rest today</button></div>${next}`;
-  } else if(b.mode === 'rest'){
-    S.innerHTML = `<h2>Today</h2><div class="ttl">Rest day</div>${why}
-      <div class="controls"><button class="btn primary" data-do="strength">Log a 20-min strength session</button></div>
-      <div class="alt"><button data-do="walk">Record a walk</button>${b.alt ? '<button data-do="anyway">Easy jog anyway</button>' : ''}${b.skipped ? '<button data-do="unrest">Give me a session</button>' : ''}</div>${next}`;
-  } else {
-    S.innerHTML = doneCardHtml(b.doneToday, b) + next;
-  }
-  const L = $('#tLast'), la = b.last;
-  L.hidden = !la || b.mode === 'done';
-  if(la && !L.hidden) L.innerHTML = `<h2>Last run</h2><b>${la.type}${la.plan ? ' · ' + la.plan : ''}</b> · ${fmtDate(la.date)}<div class="vsub">${(la.dist/1000).toFixed(2)} km · ${fmtTime(la.time)} · ${fmtPace(la.time, la.dist)} min/km</div>${la.coach ? `<div class="vsub" style="margin-top:4px">${coachNote(la.coach)}</div>` : ''}`;
-  $('#dayChips').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d => `<button data-day="${d}" class="${b.cfg.days.includes(d) ? 'on' : ''}">${DOW[d]}</button>`).join('');
-  $('#maxLong').value = b.cfg.maxLong;
-  $('#maxRuns').value = b.cfg.maxRuns;
-  const pr = profile() || {};
-  $('#pBirth').value = pr.birth || ''; $('#pSex').value = pr.sex || ''; $('#pGoal').value = pr.goal || '';
-  renderGoal(); renderWeekCircles(b); renderTrain();
-  renderSensorLast();
+  renderWeekCircles(brief);
 }
-$('#todayView').onclick = e => {
-  const day = e.target.closest('button[data-day]');
-  if(day){
-    const cfg = coachCfg(), d = +day.dataset.day, has = cfg.days.includes(d);
-    cfg.days = has ? cfg.days.filter(x => x !== d) : cfg.days.concat(d);
-    store.set('trackr.coach', cfg); renderToday(); $('#tSet').open = true; return;
-  }
-  const btn = e.target.closest('button[data-do]'); if(!btn || !brief) return;
-  const what = btn.dataset.do;
-  if(what === 'test'){ launch(makeSession('test', { vv: 0, acts: [], cfg: coachCfg() })); return; }
-  if(what === 'start') launch(brief.session);
-  else if(what === 'easier' || what === 'anyway') launch(brief.alt);
-  else if(what === 'rest'){ store.set('trackr.skip', dkey(Date.now())); renderToday(); }
-  else if(what === 'unrest'){ store.del('trackr.skip'); renderToday(); }
-  else if(what === 'strength'){
-    const list = store.get('trackr.acts', []), t = Date.now();
-    list.unshift({ id: 's' + t, type: 'Strength', manual: true, date: t, dist: 0, time: 20*60000, gain: 0, segs: [], laps: [] });
-    store.set('trackr.acts', list); buzz(40); toast('Strength session logged'); renderToday(); renderList();
-  }
-  else if(what === 'walk'){
-    if(act){ toast('Finish the current activity first.'); return; }
-    pendingPlan = null; type = 'Walking';
-    document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
-    showTab('rec'); render();
-  }
-};
-$('#sumCopy').onclick = async () => {
-  const text = buildSummary(), box = $('#sumBox');
-  try{ await navigator.clipboard.writeText(text); box.hidden = true; toast('Summary copied. Paste it into Claude.'); }
-  catch(e){ box.hidden = false; box.value = text; box.focus(); box.select(); toast('Could not copy automatically: select the text below and copy it.'); }
-};
-$('#lgAdd').onclick = () => {
-  const min = Math.round(+$('#lgMin').value), back = +$('#lgDay').value, kind = $('#lgType').value;
-  if(!(min >= 5 && min <= 240)){ toast('Enter between 5 and 240 minutes.'); return; }
-  const t = back ? startOfDay(Date.now()) - back*DAY + 12*3600000 : Date.now();   // past days are stamped at midday
-  const list = store.get('trackr.acts', []);
-  list.push({ id: 'm' + Date.now(), type: kind, manual: true, date: t, dist: 0, time: min*60000, gain: 0, segs: [], laps: [] });
-  store.set('trackr.acts', list.sort((a, b) => b.date - a.date)); buzz(40);
-  toast(`${kind === 'Walking' ? 'Walk' : kind === 'Cardio' ? 'Cardio' : 'Gym'} logged: ${min} min`); renderToday(); renderList();
-};
-$('#maxRuns').onchange =e => { const cfg = coachCfg(); cfg.maxRuns = clamp(Math.round(+e.target.value) || 5, 3, 6); store.set('trackr.coach', cfg); renderToday(); };
-const saveProfile = () => { store.set('trackr.profile', { birth: $('#pBirth').value, sex: $('#pSex').value, goal: $('#pGoal').value.trim().slice(0, 140) }); renderToday(); $('#tSet').open = true; };
-$('#pBirth').onchange = saveProfile; $('#pSex').onchange = saveProfile; $('#pGoal').onchange = saveProfile;
-$('#maxLong').onchange =e => { const v = clamp(Math.round(+e.target.value) || 60, 30, 240); const cfg = coachCfg(); cfg.maxLong = v; store.set('trackr.coach', cfg); renderToday(); };
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('#todayView').classList.contains('on')) renderToday(); });
 
 /* ---------- next goal countdown + this week's circles ---------- */
@@ -1770,14 +1435,6 @@ function nextGoal(){
   if(!c) return null;
   const due = startOfDay(c.date) + COOPER_GAP*DAY;
   return { name: 'Next Cooper test', from: startOfDay(c.date), due, days: Math.round((due - startOfDay(Date.now()))/DAY), last: c };
-}
-function renderGoal(){
-  const el = $('#tGoal'), g = nextGoal();
-  if(!g){ el.innerHTML = `<h2>Next goal</h2><div class="ttl">First Cooper test</div><div class="vsub">12 minutes as far as you can. It sets every target in the app.</div><div class="controls"><button class="btn primary" data-do="test">Start the test</button></div>`; return; }
-  const pct = clamp((Date.now() - g.from)/(g.due - g.from), 0, 1)*100;
-  const when = new Date(g.due).toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
-  const head = g.days > 0 ? `<span class="goalnum">${g.days}</span> day${g.days === 1 ? '' : 's'}` : g.days === 0 ? '<span class="goalnum">Today</span>' : `<span class="goalnum">${-g.days}</span> day${g.days === -1 ? '' : 's'} overdue`;
-  el.innerHTML = `<h2>${g.name}</h2><div>${head}</div><div class="vsub" style="margin-top:6px">${when} · last test ${g.last.value.toFixed(1)} on ${new Date(g.last.date).toLocaleDateString(undefined, { day:'numeric', month:'short' })}. Beat your distance, or just run it honestly.</div><div class="gbar"><i style="width:${pct}%"></i></div>${g.days <= 0 ? '<div class="controls"><button class="btn primary" data-do="test">Start the test</button></div>' : ''}`;
 }
 const KIND_UI = { interval:['k-hard','Int'], pace:['k-hard','Pace'], long:['k-long','Long'], easy:['k-easy','Easy'], comeback:['k-easy','Easy'], test:['k-test','Test'] };
 function actKind(a){
@@ -1825,411 +1482,6 @@ function renderWeekCircles(b){
     <div class="wklg"><span><i class="k-hard"></i>hard</span><span><i class="k-easy"></i>easy</span><span><i class="k-long"></i>long</span><span><i class="k-test"></i>test</span><span><i class="k-str"></i>gym</span><span><i class="k-walk"></i>walk</span><span>dashed = planned</span></div>`;
 }
 
-/* ---------- personal bests (fixed: best efforts from the full Strava history up to 3 Oct 2026) ---------- */
-const PB_YEARS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
-const PB = [   // distance, all-time [time, pace /km, date], best time per year
-  ['400 m',        ['1:27', '3:37', '4 Jul 2022'],  ['1:34', '1:35', '1:27', '1:52', '1:37', '1:47', '1:41']],
-  ['1 km',         ['4:25', '4:25', '12 Mar 2021'], ['4:28', '4:25', '4:46', '5:17', '4:52', '5:10', '5:28']],
-  ['5 km',        ['25:34', '5:07', '27 Nov 2020'], ['25:34', '25:35', '31:02', '34:45', '28:27', '31:17', '32:27']],
-  ['10 km',        ['56:23', '5:38', '4 Dec 2020'],  ['56:23', '58:26', '–', '1:10:11', '1:12:41', '1:07:18', '1:10:06']],
-  ['15 km',        ['1:27:43', '5:51', '6 Dec 2020'], ['1:27:43', '–', '–', '–', '–', '1:59:43', '–']],
-  ['20 km',        ['1:59:30', '5:58', '6 Dec 2020'], ['1:59:30', '–', '–', '–', '–', '2:48:51', '–']],
-  ['Half marathon', ['2:06:30', '5:59', '6 Dec 2020'], ['2:06:30', '–', '–', '–', '–', '2:58:30', '–']]
-];
-const PB_M = { '400 m':400, '1 km':1000, '5 km':5000, '10 km':10000, '15 km':15000, '20 km':20000, 'Half marathon':21097.5 };
-const pbPace = (t, m) => { if(t === '–') return ''; const s = t.split(':').reduce((a, x) => a*60 + +x, 0)/(m/1000); return `${Math.floor(Math.round(s)/60)}:${String(Math.round(s) % 60).padStart(2, '0')}`; };
-function renderPBs(){
-  const hd = ['Distance', 'Time', 'Pace min/km', 'Date'].map(h => `<th>${h}</th>`).join('');
-  const all = PB.map(r => `<tr><td>${r[0]}</td><td class="best">${r[1][0]}</td><td>${pbPace(r[1][0], PB_M[r[0]])}</td><td>${r[1][2]}</td></tr>`).join('');
-  const yr = PB.map(r => `<tr><td>${r[0]}</td>${r[2].map(t => `<td${t === r[1][0] ? ' class="best"' : ''}>${t}${t === '–' ? '' : `<br><span style="color:var(--muted);font-weight:400;font-size:11px">${pbPace(t, PB_M[r[0]])} min/km</span>`}</td>`).join('')}</tr>`).join('');
-  $('#pbBody').innerHTML = `<div class="vsub" style="margin-top:8px">All-time</div><table class="pbt"><tr>${hd}</tr>${all}</table>
-    <div class="vsub" style="margin-top:12px">Best time and pace by year</div><div class="pbw"><table class="pbt"><tr><th>Distance</th>${PB_YEARS.map(y => `<th>${y}</th>`).join('')}</tr>${yr}</table></div>
-    <div class="vsub" style="margin-top:8px">Never run 30 km or a marathon. Times are moving time from GPS and can differ from Strava's own best efforts by a few seconds.</div>
-    <div id="allData"></div>`;
-  renderAllData();
-}
-// Every run and walk in your Strava history (to 3 Oct 2026), newest first: date (Malaysia time), km, moving seconds, R = run / W = walk, X = bad GPS (left out of totals).
-const RUNLOG = `2026-10-03,5.01,2174,R
-2026-10-01,5.01,2059,R
-2026-09-28,5.05,2110,R
-2026-09-27,5.0,2365,R
-2026-09-24,5.06,2069,R
-2026-09-22,5.07,2118,R
-2026-09-21,5.03,2280,R
-2026-09-20,5.05,2380,R
-2026-09-16,4.97,2215,R
-2026-09-15,5.01,2276,R
-2026-09-12,2.35,937,R
-2026-09-11,5.03,2313,R
-2026-09-10,5.02,2375,R
-2026-09-07,5.07,2455,R
-2026-09-06,2.37,1047,R
-2026-09-04,3.71,1743,R
-2026-08-30,5.13,2393,R
-2026-08-29,5.01,2281,R
-2026-08-09,5.03,2130,R
-2026-08-08,5.01,2442,R
-2026-07-17,5.05,2232,R
-2026-06-26,5.01,2171,R
-2026-06-15,4.01,1823,R
-2026-06-12,10.15,4715,R
-2026-06-08,5.04,2230,R
-2026-06-06,3.69,1619,R
-2026-06-04,5.04,2358,R
-2026-05-30,4.32,1891,R
-2026-05-28,5.66,2504,R
-2026-05-21,2.35,1060,R
-2026-05-13,5.02,1985,R
-2026-05-11,5.02,2061,R
-2026-05-08,10.01,4385,R
-2026-05-06,4.69,2102,R
-2026-04-30,5.01,2034,R
-2026-04-28,4.99,2018,R
-2026-04-26,10.09,4681,R
-2026-04-23,5.01,1992,R
-2026-04-21,5.02,2091,R
-2026-04-18,10.02,4409,R
-2026-04-15,5.01,1982,R
-2026-04-13,3.69,1529,R
-2026-04-11,10.09,4683,R
-2026-04-09,5.0,2057,R
-2026-04-07,3.68,1584,R
-2026-04-05,10.61,4946,R
-2026-04-02,5.01,2071,R
-2026-03-31,3.66,1564,R
-2026-03-29,5.01,2127,R
-2026-03-25,3.66,1544,R
-2026-03-24,5.01,2137,R
-2026-03-23,5.01,2167,R
-2026-03-16,2.57,1160,R
-2026-03-13,2.37,1053,R
-2026-02-18,5.01,2134,R
-2026-02-16,2.85,946,R
-2026-02-12,5.01,1984,R
-2026-02-10,3.66,1413,R
-2026-02-01,10.53,4666,R
-2026-01-28,5.01,1968,R
-2026-01-26,2.69,883,R
-2026-01-24,10.01,4212,R
-2026-01-21,5.0,1951,R
-2026-01-19,3.69,1497,R
-2026-01-17,10.01,4353,R
-2026-01-14,5.01,1951,R
-2026-01-12,2.88,911,R
-2026-01-10,10.01,4305,R
-2026-01-07,5.01,1969,R
-2026-01-05,2.9,935,R
-2026-01-03,10.02,4317,R
-2026-01-01,3.68,1460,R
-2025-12-30,3.69,1452,R
-2025-12-28,3.7,1399,R
-2025-12-26,3.66,1461,R
-2025-12-23,3.69,1448,R
-2025-12-21,3.65,1360,R
-2025-12-20,3.67,1459,R
-2025-12-16,3.67,1490,R
-2025-12-15,3.66,1457,R
-2025-12-12,3.65,1454,R
-2025-11-30,1.07,413,R
-2025-11-15,2.33,859,R
-2025-11-15,3.67,1442,R
-2025-11-13,3.64,1513,R
-2025-11-12,3.67,1428,R
-2025-11-10,1.54,609,R
-2025-11-09,3.66,1443,R
-2025-11-07,2.46,910,R
-2025-11-06,3.65,1423,R
-2025-11-03,3.66,1480,R
-2025-11-01,3.65,1491,R
-2025-10-31,3.67,1472,R
-2025-10-29,3.62,1355,R
-2025-10-28,3.66,1446,R
-2025-10-26,3.66,1441,R
-2025-10-16,3.62,1526,R
-2025-10-15,3.66,1490,R
-2025-10-12,1.68,599,R
-2025-10-10,2.32,813,R
-2025-10-08,3.63,1440,R
-2025-10-05,3.65,1401,R
-2025-10-03,3.66,1412,R
-2025-10-02,3.65,1495,R
-2025-09-24,3.64,1497,R
-2025-09-18,3.64,1321,R
-2025-09-16,3.64,1257,R
-2025-09-14,10.67,4951,R
-2025-09-11,3.63,1241,R
-2025-09-10,3.64,1306,R
-2025-09-08,3.63,1310,R
-2025-09-07,3.65,1431,R
-2025-09-06,3.64,1363,R
-2025-09-05,3.63,1395,R
-2025-09-01,3.62,1439,R
-2025-08-30,3.66,1402,R
-2025-08-29,3.65,1444,R
-2025-08-28,3.67,1487,R
-2025-08-27,3.64,1366,R
-2025-08-26,3.65,1407,R
-2025-08-24,3.65,1381,R
-2025-08-23,3.64,1390,R
-2025-08-22,3.62,1443,R
-2025-08-21,3.65,1473,R
-2025-08-16,2.3,838,R
-2025-08-15,2.32,887,R
-2025-08-13,0.3,108,R
-2025-08-11,3.66,1499,R
-2025-08-09,3.65,1529,R
-2025-08-07,2.32,916,R
-2025-08-03,3.65,1534,R
-2025-07-29,2.32,900,R
-2025-07-27,3.62,1535,R
-2025-07-25,10.74,5281,R
-2025-07-23,3.65,1405,R
-2025-07-19,2.31,841,R
-2025-07-17,2.32,989,R
-2025-07-10,5.01,2381,R
-2025-07-04,10.03,4039,R
-2025-07-03,3.56,1481,R
-2025-07-02,4.07,1204,R
-2025-07-01,5.01,2027,R
-2025-06-24,2.06,684,R
-2025-06-19,4.11,1396,R
-2025-06-18,5.05,2126,R
-2025-06-15,5.07,2136,R
-2025-06-12,21.12,10792,R
-2025-06-07,5.11,2377,R
-2025-06-04,3.69,1312,R
-2025-06-02,6.38,2592,R
-2025-06-01,5.11,2099,R
-2025-05-30,5.2,2328,R
-2025-05-29,10.25,4491,R
-2025-05-27,2.58,1001,R
-2025-05-24,5.09,2160,R
-2025-05-22,2.02,701,R
-2025-05-20,6.41,2766,R
-2025-05-18,5.0,2036,R
-2025-05-16,5.01,2134,R
-2025-05-14,1.37,460,R
-2025-05-13,2.51,966,R
-2025-05-12,5.07,2291,R
-2025-05-09,5.04,2363,R
-2025-05-03,10.01,4861,R
-2025-04-29,5.68,2621,R
-2025-04-27,5.08,2266,R
-2025-04-17,5.29,2478,R
-2025-04-13,5.13,2245,R
-2025-04-10,5.28,2582,R
-2025-04-04,5.1,2250,R
-2025-03-21,5.13,2007,R
-2025-03-16,5.08,2339,W
-2025-03-10,5.13,2274,R
-2025-03-07,3.33,1272,R
-2025-02-28,4.71,1955,R
-2025-02-23,15.01,7270,R
-2025-02-21,5.07,2227,R
-2025-02-18,3.3,1307,R
-2025-02-14,5.2,2305,R
-2025-02-07,5.07,2497,R
-2025-01-23,5.42,2322,R
-2025-01-17,5.08,2135,R
-2025-01-13,5.08,2076,R
-2025-01-11,5.06,2140,R
-2025-01-08,2.87,1148,R
-2025-01-05,1.1,375,R
-2025-01-01,2.5,957,R
-2024-12-28,5.06,1917,R
-2024-12-26,4.42,1654,R
-2024-12-23,5.09,2074,R
-2024-12-22,5.06,2127,R
-2024-12-20,5.1,2097,R
-2024-12-16,5.05,2084,R
-2024-12-08,8.37,3745,R
-2024-12-04,3.31,1193,R
-2024-12-02,3.32,1193,R
-2024-11-28,6.74,2659,R
-2024-11-21,2.02,717,R
-2024-11-20,5.7,2433,R
-2024-11-16,3.79,1506,R
-2024-11-14,3.14,1385,R
-2024-10-25,1.75,739,R
-2024-10-25,3.31,1273,R
-2024-09-20,5.02,2254,R
-2024-09-17,3.29,1282,R
-2024-09-14,5.02,2017,R
-2024-09-09,3.3,1284,R
-2024-08-31,5.01,2160,R
-2024-08-28,5.55,2381,R
-2024-08-26,3.01,1332,R
-2024-08-24,3.06,1248,R
-2024-08-21,5.76,2826,R
-2024-07-31,5.74,2416,R
-2024-07-29,5.77,2485,R
-2024-04-29,5.3,1999,R
-2024-04-20,4.63,1774,R
-2024-04-12,2.33,820,R
-2024-04-02,5.09,1780,R
-2024-03-26,5.24,1947,R
-2024-03-24,5.05,1734,R
-2024-03-16,6.44,2441,R
-2024-03-09,5.0,1746,R
-2024-03-07,5.06,2107,R
-2024-03-03,3.12,1121,R
-2024-03-02,3.6,1321,R
-2024-02-24,3.53,1299,R
-2024-02-06,6.36,2328,R
-2024-02-03,4.2,1509,R
-2024-01-31,5.02,1766,R
-2024-01-30,2.94,1022,R
-2024-01-23,3.21,1266,R
-2024-01-19,10.2,4456,R
-2023-10-29,0.82,285,R
-2023-10-29,2.92,1053,R
-2023-10-23,3.19,1143,R
-2023-10-22,3.01,1054,R
-2023-10-16,1.53,540,R
-2023-09-09,6.26,1764,R
-2023-09-03,10.33,4699,R
-2023-08-31,1.82,676,R
-2023-08-26,10.38,4386,R
-2023-07-20,3.51,1368,R
-2023-07-18,3.77,2778,W
-2023-07-17,5.04,2161,R
-2023-07-15,2.2,860,R
-2023-07-11,5.53,2334,R
-2022-07-30,2.3,1037,R
-2022-07-05,2.52,769,R
-2022-07-04,2.51,777,R
-2022-07-03,2.52,789,R
-2022-07-02,2.46,804,R
-2022-06-30,2.51,812,R
-2022-06-29,2.94,748,R
-2022-02-22,5.13,1916,R
-2022-02-17,5.15,1909,R
-2021-11-06,5.0,1943,R
-2021-10-24,10.01,3788,R
-2021-10-23,3.46,1289,R
-2021-10-16,10.0,3965,R
-2021-10-14,2.28,802,R
-2021-10-13,10.0,3864,R
-2021-10-12,10.25,3600,R
-2021-10-11,10.1,3892,R
-2021-10-10,8.0,3101,R
-2021-10-09,7.58,2559,R
-2021-10-04,1.38,466,R
-2021-09-28,5.18,1901,R
-2021-09-19,4.38,1580,R
-2021-09-17,4.0,1428,R
-2021-09-16,4.2,1468,R
-2021-09-14,4.02,1450,R
-2021-09-13,1.58,500,R
-2021-09-12,5.0,1876,R
-2021-09-10,2.61,1007,R
-2021-09-09,1.22,585,R
-2021-09-09,0.29,123,R
-2021-09-09,3.49,1345,R
-2021-09-08,1.95,668,R
-2021-09-07,5.38,1953,R
-2021-09-06,2.74,919,R
-2021-08-26,4.71,1676,R
-2021-08-25,6.01,2138,R
-2021-08-23,3.14,1078,R
-2021-06-28,8.84,1726,R
-2021-06-27,8.34,1717,R
-2021-06-26,14.62,1590,RX
-2021-06-24,2.47,844,R
-2021-06-23,2.63,850,R
-2021-04-17,3.85,1409,R
-2021-04-10,2.58,791,R
-2021-04-10,2.55,829,R
-2021-04-09,0.66,206,R
-2021-04-08,2.58,785,R
-2021-04-06,2.6,781,R
-2021-04-04,1.55,441,R
-2021-04-03,3.64,1078,R
-2021-04-02,2.59,775,R
-2021-04-01,2.59,769,R
-2021-03-31,2.6,782,R
-2021-03-30,2.61,792,R
-2021-03-29,2.54,764,R
-2021-03-27,2.55,760,R
-2021-03-26,2.56,779,R
-2021-03-24,2.56,786,R
-2021-03-23,2.53,807,R
-2021-03-20,4.48,1514,R
-2021-03-19,2.55,803,R
-2021-03-13,5.19,1709,R
-2021-03-12,5.29,1612,R
-2021-03-09,2.57,763,R
-2021-03-08,2.58,827,R
-2021-03-06,5.28,1709,R
-2021-03-05,2.59,771,R
-2021-03-03,2.58,766,R
-2021-03-02,2.58,719,R
-2021-03-01,2.57,779,R
-2021-02-27,1.75,603,R
-2021-02-26,2.52,769,R
-2021-02-16,2.58,763,R
-2021-02-11,5.19,1641,R
-2021-01-30,8.54,3226,R
-2021-01-17,5.39,1770,R
-2021-01-15,2.64,780,R
-2021-01-14,2.54,808,R
-2021-01-13,5.18,1674,R
-2021-01-08,2.39,765,R
-2021-01-06,5.57,1776,R
-2021-01-01,5.14,1595,R
-2020-12-30,5.61,1751,R
-2020-12-27,1.98,1173,R
-2020-12-27,3.08,897,R
-2020-12-25,3.14,883,R
-2020-12-23,1.87,538,R
-2020-12-22,3.17,888,R
-2020-12-21,3.12,893,R
-2020-12-19,0.25,46,R
-2020-12-19,0.31,65,R
-2020-12-19,6.72,2385,R
-2020-12-16,5.76,1821,R
-2020-12-14,3.08,915,R
-2020-12-09,3.08,995,R
-2020-12-06,21.24,7645,R
-2020-12-04,10.23,3453,R
-2020-12-03,3.09,932,R
-2020-12-02,10.54,3668,R
-2020-12-01,3.06,978,R
-2020-11-30,5.59,1727,R
-2020-11-29,5.57,1739,R
-2020-11-28,1.44,522,R
-2020-11-28,6.85,2458,R
-2020-11-27,5.72,1745,R
-2020-11-26,5.73,1829,R
-2020-11-25,3.14,1009,R
-2020-11-21,3.11,903,R
-2020-11-20,4.37,1305,R
-2020-11-19,5.68,1858,R
-2020-11-14,3.14,986,R
-2020-11-13,3.24,956,R
-2020-11-10,3.16,927,R
-2020-11-08,3.11,894,R
-2020-11-07,3.21,988,R
-2020-11-05,1.62,492,R
-2020-11-04,3.1,934,R
-2020-11-03,3.18,965,R
-2020-10-29,1.54,520,R
-2020-10-25,6.0,2207,R
-2020-10-24,2.8,1075,R`;
-function renderAllData(){
-  const rows = RUNLOG.trim().split('\n').map(l => { const [d, km, s, t] = l.split(','); return { d, km: +km, s: +s, t: t[0], bad: t.includes('X') }; });
-  const hms = s => { s = Math.round(s); const h = Math.floor(s/3600), m = Math.floor(s%3600/60); return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`; };
-  const pace = (s, km) => { if(!(km > 0)) return '–'; const p = Math.round(s/km); return `${Math.floor(p/60)}:${String(p % 60).padStart(2, '0')}`; };
-  const runs = rows.filter(r => r.t === 'R' && !r.bad), by = {};
-  runs.forEach(r => { const y = r.d.slice(0, 4), o = by[y] || (by[y] = { n: 0, km: 0, s: 0, max: 0 }); o.n++; o.km += r.km; o.s += r.s; o.max = Math.max(o.max, r.km); });
-  const line = (label, o, strong) => `<tr${strong ? ' style="font-weight:700"' : ''}><td>${label}</td><td>${o.n}</td><td>${Math.round(o.km)}</td><td>${hms(o.s)}</td><td>${pace(o.s, o.km)}</td><td>${(o.km/o.n).toFixed(1)}</td><td>${o.max.toFixed(1)}</td></tr>`;
-  const tot = Object.values(by).reduce((a, o) => ({ n: a.n + o.n, km: a.km + o.km, s: a.s + o.s, max: Math.max(a.max, o.max) }), { n: 0, km: 0, s: 0, max: 0 });
-  const log = rows.map(r => `<tr${r.bad ? ' style="opacity:.55"' : ''}><td>${r.d}</td><td>${r.t === 'W' ? 'Walk' : 'Run'}${r.bad ? ' ⚠' : ''}</td><td>${r.km.toFixed(2)}</td><td>${fmtTime(r.s*1000)}</td><td>${pace(r.s, r.km)}</td></tr>`).join('');
-  $('#allData').innerHTML = `<div class="vsub" style="margin-top:14px">All your data, by year (runs)</div><div class="pbw"><table class="pbt"><tr><th>Year</th><th>Runs</th><th>km</th><th>Time</th><th>Avg pace</th><th>Avg km</th><th>Longest</th></tr>${Object.keys(by).sort().map(y => line(y, by[y])).join('')}${line('All time', tot, true)}</table></div>
-    <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Every run (${rows.length})</summary><div class="pbw" style="max-height:60vh;overflow:auto"><table class="pbt"><tr><th>Date</th><th>Type</th><th>km</th><th>Time</th><th>min/km</th></tr>${log}</table></div>
-    <div class="vsub" style="margin-top:6px">⚠ = GPS recorded a vehicle-speed track (14.6 km in 26 minutes), so it is left out of the totals and bests.</div></details>`;
-}
-renderPBs();
 
 /* ---------- persistence + backup ---------- */
 async function protectStorage(){   // ask the browser not to clear our data; no message shown
@@ -2271,22 +1523,208 @@ $('#impFile').onchange = async e => {
   }catch(err){ toast('Could not read that backup file.'); }
 };
 
+/* ---------- gym: workout templates, a live workout logger, and quick logs ---------- */
+// Templates live in trackr.gym ({ tpl: [{ id, name, ex: [{ n, sets, reps, kg }] }] }) and sync like the coach settings.
+// The workout in progress lives in trackr.gymLive (this device only, so a reload or a closed tab doesn't lose it).
+// A finished workout is saved as a manual 'Strength' activity, so it syncs, lists under Activities and shows as a purple Gym circle on Today.
+const GYM_COLORS = ['#16a34a', '#2563eb', '#d97706', '#9333ea', '#dc2626', '#0891b2', '#db2777'];
+const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
+const isoDay = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const gymData = () => { const g = store.get('trackr.gym', null); return g && Array.isArray(g.tpl) ? g : { tpl: [] }; };
+const gymTpls = () => gymData().tpl;
+const saveTpls = tpl => store.set('trackr.gym', Object.assign(gymData(), { tpl }));
+const gymLive = () => store.get('trackr.gymLive', null);
+const saveLive = w => store.set('trackr.gymLive', w);
+const initials = n => { const w = String(n).trim().split(/[\s\-–·]+/).filter(x => /[a-z0-9]/i.test(x)); return ((w[0] || '?')[0] + (w[1] ? w[1][0] : (w[0] || '').slice(1, 2))).toUpperCase(); };
+const tplColor = t => GYM_COLORS[[...String(t.id)].reduce((h, c) => (h*31 + c.charCodeAt(0)) >>> 0, 0) % GYM_COLORS.length];
+const kgTxt = v => v > 0 ? (Math.round(v*100)/100) + ' kg' : '';
+const gymUi = { mode: 'list', draft: null, open: {}, discard: 0, expand: {} };
+let gymTimer = 0;
+
+function renderGym(){
+  clearInterval(gymTimer);
+  const live = gymLive();
+  if(gymUi.mode === 'edit' && gymUi.draft) return renderGymEdit();
+  if(gymUi.mode === 'live' && live) return renderGymLive(live);
+  gymUi.mode = 'list';
+  const acts = store.get('trackr.acts', []).filter(a => a.manual && (a.type === 'Strength' || a.type === 'Cardio' || a.type === 'Walking')).sort((a, b) => b.date - a.date);
+  const now = new Date(), wkStart = startOfDay(Date.now()) - ((now.getDay() + 6) % 7)*DAY;
+  const wk = acts.filter(a => a.date >= wkStart && a.type !== 'Walking'), str = wk.filter(a => a.type === 'Strength').length;
+  const tpl = gymTpls();
+  const card = t => {
+    const show = gymUi.expand[t.id] ? t.ex : t.ex.slice(0, 3);
+    return `<div class="panel gtpl"><div class="top"><div><div class="nm">${esc(t.name)}</div><div class="vsub">${t.ex.length} exercise${t.ex.length === 1 ? '' : 's'}</div></div><div class="gbadge" style="background:${tplColor(t)}">${esc(initials(t.name))}</div></div>
+      <div class="gexl">${show.map(e => `<div><span>${esc(e.n)}</span><b>${e.sets}×${e.reps}${e.kg > 0 ? ` <span style="color:var(--muted);font-weight:400">${kgTxt(e.kg)}</span>` : ''}</b></div>`).join('')}</div>
+      ${t.ex.length > 3 ? `<div style="text-align:right"><button class="glink" data-g="expand" data-id="${esc(t.id)}">${gymUi.expand[t.id] ? 'Show less' : 'View all'}</button></div>` : ''}
+      <div class="grow2"><button class="btn primary" data-g="start" data-id="${esc(t.id)}">Start</button><button class="btn" data-g="edit" data-id="${esc(t.id)}" style="flex:none;padding:8px 22px">Edit</button></div></div>`;
+  };
+  $('#gymBody').innerHTML = `
+    <div class="panel"><h2>Gym this week</h2><div><span class="goalnum">${str}</span> of 2 strength sessions</div>
+      <div class="vsub" style="margin-top:4px">${wk.length} gym session${wk.length === 1 ? '' : 's'} · ${Math.round(wk.reduce((s, a) => s + a.time, 0)/60000)} min${str >= 2 ? ' · strength goal done ✓' : ''}</div>
+      <div class="gbar"><i style="width:${Math.min(100, str/2*100)}%"></i></div></div>
+    ${live ? `<div class="panel"><h2>Workout in progress</h2><div class="ttl" style="font-size:18px">${esc(live.name)}</div><div class="grow2"><button class="btn primary" data-g="resume">Resume</button></div></div>` : ''}
+    <div class="ghd"><h1>My workouts</h1></div>
+    ${tpl.length ? tpl.map(card).join('') : '<div class="panel"><div class="vsub">No workouts yet. Tap <b>+ New</b> to build one (for example Upper body, Lower body, Pull), then Start it at the gym to log each set.</div></div>'}
+    <div class="panel"><h2>Recent sessions</h2>${acts.length ? acts.slice(0, 15).map(a => `<div class="gs"><div><b>${esc(a.gym ? a.gym.name : a.type === 'Strength' ? 'Weights' : a.type === 'Cardio' ? 'Cardio' : 'Walk')}</b> · ${Math.max(1, Math.round(a.time/60000))} min
+        <div class="vsub">${new Date(a.date).toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' })}${a.gym ? ` · ${a.gym.ex.reduce((s, e) => s + e.sets.length, 0)} sets` : ''}</div>${a.note ? `<div class="gn">${esc(a.note)}</div>` : ''}</div>
+        <button class="gx" data-g="del" data-id="${esc(a.id)}" aria-label="Delete session">×</button></div>`).join('') : '<div class="vsub">Nothing logged yet.</div>'}</div>
+    <details class="panel"><summary>Quick log (minutes only: cardio, a walk, or a session you didn't track)</summary>
+      <div class="fld">
+        <label>What<select id="gType"><option value="Strength">Weights / strength</option><option value="Cardio">Cardio / other</option><option value="Walking">Walk (no GPS)</option></select></label>
+        <label>Minutes<input id="gMin" type="number" inputmode="numeric" value="45" min="5" max="240" step="5"></label>
+        <label>Date<input id="gDate" type="date" style="width:150px" value="${isoDay(Date.now())}" max="${isoDay(Date.now())}"></label>
+        <button class="sbtn" data-g="quick">Log it</button>
+      </div></details>
+    <button class="gfab" data-g="new">+ NEW</button>`;
+}
+
+function renderGymEdit(){
+  const d = gymUi.draft;
+  $('#gymBody').innerHTML = `
+    <div class="glive-hd"><button class="gback" data-g="cancel" aria-label="Back">←</button><div class="t"><div>${d.id ? 'Edit workout' : 'New workout'}</div></div></div>
+    <div class="panel"><input class="gtitle" id="gName" maxlength="60" placeholder="Name, e.g. Upper body" value="${esc(d.name)}">
+      <div class="gedhd"><span>Exercise</span><span>Sets</span><span>Reps</span><span>kg</span><span></span></div>
+      ${d.ex.map((e, i) => `<div class="gedrow"><input class="n" data-ed="${i}" data-f="n" maxlength="60" placeholder="e.g. Squat · Barbell" value="${esc(e.n)}"><input data-ed="${i}" data-f="sets" type="number" inputmode="numeric" min="1" max="20" value="${e.sets}"><input data-ed="${i}" data-f="reps" type="number" inputmode="numeric" min="1" max="100" value="${e.reps}"><input data-ed="${i}" data-f="kg" type="number" inputmode="decimal" min="0" step="0.5" placeholder="–" value="${e.kg > 0 ? e.kg : ''}"><button class="gx" data-g="exdel" data-i="${i}" aria-label="Remove exercise">×</button></div>`).join('')}
+      <button class="gadd" data-g="exadd">+ Add exercise</button>
+    </div>
+    <div class="grow2" style="margin-top:0"><button class="btn primary" data-g="save">Save workout</button>${d.id ? `<button class="btn" data-g="tdel" style="flex:none;padding:8px 18px;color:var(--danger)">${gymUi.discard ? 'Tap again to delete' : 'Delete'}</button>` : ''}</div>`;
+}
+
+const fmtClock = ms => { const s = Math.max(0, Math.floor(ms/1000)), h = Math.floor(s/3600), m = Math.floor(s % 3600/60); return (h ? h + ':' + String(m).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(s % 60).padStart(2, '0'); };
+function nextSet(w){ for(let i = 0; i < w.ex.length; i++){ const j = w.ex[i].sets.findIndex(x => !x.done); if(j >= 0) return [i, j]; } return null; }
+function renderGymLive(w){
+  const nx = nextSet(w);
+  if(nx && gymUi.open[nx[0]] === undefined && !Object.keys(gymUi.open).length) gymUi.open[nx[0]] = true;
+  $('#gymBody').innerHTML = `
+    <div class="glive-hd"><button class="gback" data-g="leave" aria-label="Back to workouts">←</button><div class="t"><div>${esc(w.name)}</div><div class="clock" id="gClock">${fmtClock(Date.now() - w.start)}</div></div>
+      <button class="btn" data-g="discard" style="flex:none;min-height:40px;padding:8px 12px;font-size:13px;color:var(--danger)">${gymUi.discard ? 'Tap again to discard' : 'Discard'}</button></div>
+    ${w.ex.map((e, i) => { const done = e.sets.filter(x => x.done).length, open = !!gymUi.open[i];
+      return `<div class="panel gex"><div class="eh" data-g="toggle" data-i="${i}"><span class="chev">${open ? '▲' : '▼'}</span><div class="nm">${esc(e.n)}<div class="sub">${done}/${e.sets.length} done</div></div><button class="gx" data-g="lexdel" data-i="${i}" aria-label="Remove exercise">×</button></div>
+        ${open ? e.sets.map((x, j) => `<div class="gset${x.done ? ' done' : ''}${nx && nx[0] === i && nx[1] === j ? ' next' : ''}"><button class="ck" data-g="ck" data-i="${i}" data-j="${j}" aria-label="Set ${j + 1} done">${x.done ? '✓' : ''}</button><span class="ix">${j + 1}</span><input data-li="${i}" data-lj="${j}" data-f="kg" type="number" inputmode="decimal" min="0" step="0.5" placeholder="–" value="${x.kg > 0 ? x.kg : ''}" aria-label="kg"><small>KG</small><input data-li="${i}" data-lj="${j}" data-f="reps" type="number" inputmode="numeric" min="0" value="${x.reps || ''}" aria-label="reps"><small>Reps</small></div>`).join('') + `<button class="gadd" data-g="setadd" data-i="${i}">+ Add a set</button>` : ''}</div>`; }).join('')}
+    <div class="panel"><div class="fld" style="margin-top:0"><label style="flex:1">Add an exercise<input id="gNewEx" maxlength="60" placeholder="e.g. Lateral raise · Dumbbell" style="width:100%"></label><button class="sbtn" data-g="lexadd">Add</button></div></div>
+    <div class="gbar2"><button class="btn" data-g="finish">Finish</button><button class="btn primary" data-g="next"${nx ? '' : ' disabled style="opacity:.5"'}>${nx ? 'LOG NEXT SET' : 'ALL SETS DONE'}</button></div>`;
+  gymTimer = setInterval(() => { const c = $('#gClock'); if(c && $('#gymView').classList.contains('on')) c.textContent = fmtClock(Date.now() - w.start); else clearInterval(gymTimer); }, 1000);
+}
+
+function startWorkout(t){
+  const last = store.get('trackr.acts', []).filter(a => a.gym && a.gym.tplId === t.id).sort((a, b) => b.date - a.date)[0];
+  saveLive({ tplId: t.id, name: t.name, start: Date.now(), ex: t.ex.map(e => {
+    const prev = last && last.gym.ex.find(x => x.n === e.n), top = prev && prev.sets.length ? prev.sets[prev.sets.length - 1] : null;
+    return { n: e.n, sets: Array.from({ length: e.sets }, () => ({ kg: top ? top.kg : e.kg || 0, reps: e.reps, done: false })) };   // weights carry over from last time
+  }) });
+  gymUi.mode = 'live'; gymUi.open = {}; gymUi.discard = 0; buzz(30); renderGym();
+}
+function finishWorkout(){
+  const w = gymLive(); if(!w) return;
+  const ex = w.ex.map(e => ({ n: e.n, sets: e.sets.filter(x => x.done).map(x => ({ kg: +x.kg || 0, reps: +x.reps || 0 })) })).filter(e => e.sets.length);
+  if(!ex.length){ toast('Tick at least one set, or Discard the workout.'); return; }
+  const time = Math.max(60000, Date.now() - w.start);
+  const note = ex.map(e => `${e.n}: ${e.sets.map(x => (x.kg ? x.kg + '×' : '') + x.reps).join(', ')}`).join('\n');
+  const list = store.get('trackr.acts', []);
+  list.push({ id: 'g' + w.start, type: 'Strength', manual: true, date: w.start, dist: 0, time, gain: 0, segs: [], laps: [], note, gym: { tplId: w.tplId, name: w.name, ex } });
+  store.set('trackr.acts', list.sort((a, b) => b.date - a.date));
+  // the template remembers today's working weight for next time
+  const tpl = gymTpls(), t = tpl.find(x => x.id === w.tplId);
+  if(t){ ex.forEach(e => { const te = t.ex.find(x => x.n === e.n), top = e.sets[e.sets.length - 1]; if(te && top.kg) te.kg = top.kg; }); saveTpls(tpl); }
+  store.del('trackr.gymLive'); gymUi.mode = 'list'; gymUi.open = {};
+  buzz([40, 60, 40]); toast(`Workout saved: ${Math.round(time/60000)} min, ${ex.reduce((s, e) => s + e.sets.length, 0)} sets`);
+  renderGym(); renderList();
+}
+
+$('#gymBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-g]'); if(!b) return;
+  const g = b.dataset.g, id = b.dataset.id, i = +b.dataset.i;
+  if(g !== 'discard' && g !== 'tdel') gymUi.discard = 0;
+  if(g === 'new'){ gymUi.draft = { id: null, name: '', ex: [{ n: '', sets: 3, reps: 8, kg: 0 }] }; gymUi.mode = 'edit'; renderGym(); $('#gName').focus(); }
+  else if(g === 'edit'){ const t = gymTpls().find(x => x.id === id); if(t){ gymUi.draft = JSON.parse(JSON.stringify(t)); gymUi.mode = 'edit'; renderGym(); } }
+  else if(g === 'expand'){ gymUi.expand[id] = !gymUi.expand[id]; renderGym(); }
+  else if(g === 'start'){
+    if(gymLive()){ toast('Finish or discard the workout in progress first.'); gymUi.mode = 'live'; renderGym(); return; }
+    const t = gymTpls().find(x => x.id === id); if(t) startWorkout(t);
+  }
+  else if(g === 'resume'){ gymUi.mode = 'live'; renderGym(); }
+  else if(g === 'del'){ store.set('trackr.acts', store.get('trackr.acts', []).filter(a => a.id !== id)); toast('Session deleted'); renderGym(); renderList(); }
+  else if(g === 'quick'){
+    const min = Math.round(+$('#gMin').value), kind = $('#gType').value, day = $('#gDate').value;
+    if(!(min >= 5 && min <= 240)){ toast('Enter between 5 and 240 minutes.'); return; }
+    let t = Date.now();
+    if(day && day !== isoDay(t)){ const [y, m, dd] = day.split('-').map(Number); t = new Date(y, m - 1, dd, 12).getTime(); if(!(t <= Date.now())){ toast('Pick today or an earlier date.'); return; } }   // past days are stamped at midday
+    const list = store.get('trackr.acts', []);
+    list.push({ id: 'm' + Date.now(), type: kind, manual: true, date: t, dist: 0, time: min*60000, gain: 0, segs: [], laps: [] });
+    store.set('trackr.acts', list.sort((a, b) => b.date - a.date)); buzz(40);
+    toast(`${kind === 'Walking' ? 'Walk' : kind === 'Cardio' ? 'Cardio' : 'Gym'} logged: ${min} min`); renderGym(); renderList();
+  }
+  // editor
+  else if(g === 'cancel'){ gymUi.mode = 'list'; gymUi.draft = null; renderGym(); }
+  else if(g === 'exadd'){ const d = gymUi.draft, l = d.ex[d.ex.length - 1]; d.ex.push({ n: '', sets: l ? l.sets : 3, reps: l ? l.reps : 8, kg: 0 }); renderGymEdit(); const ins = document.querySelectorAll('.gedrow input.n'); ins[ins.length - 1].focus(); }
+  else if(g === 'exdel'){ gymUi.draft.ex.splice(i, 1); renderGymEdit(); }
+  else if(g === 'save'){
+    const d = gymUi.draft; d.name = $('#gName').value.trim();
+    d.ex = d.ex.map(x => ({ n: x.n.trim(), sets: clamp(Math.round(+x.sets) || 3, 1, 20), reps: clamp(Math.round(+x.reps) || 8, 1, 100), kg: Math.max(0, +x.kg || 0) })).filter(x => x.n);
+    if(!d.name){ toast('Give the workout a name.'); $('#gName').focus(); return; }
+    if(!d.ex.length){ toast('Add at least one exercise.'); return; }
+    const tpl = gymTpls();
+    if(d.id){ const k = tpl.findIndex(x => x.id === d.id); if(k >= 0) tpl[k] = d; else tpl.push(d); } else { d.id = 't' + Date.now(); tpl.push(d); }
+    saveTpls(tpl); gymUi.mode = 'list'; gymUi.draft = null; toast('Workout saved'); renderGym();
+  }
+  else if(g === 'tdel'){
+    if(!gymUi.discard){ gymUi.discard = 1; renderGymEdit(); return; }
+    saveTpls(gymTpls().filter(x => x.id !== gymUi.draft.id)); gymUi.discard = 0; gymUi.mode = 'list'; gymUi.draft = null; toast('Workout deleted'); renderGym();
+  }
+  // live workout
+  else {
+    const w = gymLive(); if(!w) return;
+    if(g === 'leave'){ gymUi.mode = 'list'; renderGym(); }
+    else if(g === 'toggle'){ if(e.target.closest('.gx')) return; gymUi.open[i] = !gymUi.open[i]; renderGymLive(w); }
+    else if(g === 'ck'){ const x = w.ex[i].sets[+b.dataset.j]; x.done = !x.done; saveLive(w); if(x.done) buzz(30); renderGymLive(w); }
+    else if(g === 'setadd'){ const s = w.ex[i].sets, l = s[s.length - 1]; s.push({ kg: l ? l.kg : 0, reps: l ? l.reps : 8, done: false }); saveLive(w); renderGymLive(w); }
+    else if(g === 'lexdel'){ w.ex.splice(i, 1); gymUi.open = {}; saveLive(w); renderGymLive(w); }
+    else if(g === 'lexadd'){
+      const n = $('#gNewEx').value.trim(); if(!n){ $('#gNewEx').focus(); return; }
+      w.ex.push({ n, sets: [0, 1, 2].map(() => ({ kg: 0, reps: 8, done: false })) }); gymUi.open = { [w.ex.length - 1]: true }; saveLive(w); renderGymLive(w);
+    }
+    else if(g === 'next'){
+      const nx = nextSet(w); if(!nx) return;
+      w.ex[nx[0]].sets[nx[1]].done = true; saveLive(w); buzz(30);
+      const after = nextSet(w); gymUi.open = after ? { [after[0]]: true } : { [nx[0]]: true }; renderGymLive(w);
+      toast(`${w.ex[nx[0]].n}: set ${nx[1] + 1} logged`);
+    }
+    else if(g === 'finish') finishWorkout();
+    else if(g === 'discard'){
+      if(!gymUi.discard){ gymUi.discard = 1; renderGymLive(w); return; }
+      store.del('trackr.gymLive'); gymUi.discard = 0; gymUi.mode = 'list'; gymUi.open = {}; toast('Workout discarded'); renderGym();
+    }
+  }
+});
+// typing into inputs updates the draft or the live workout without re-rendering (keeps the keyboard up)
+$('#gymBody').addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset.ed != null && gymUi.draft){ const x = gymUi.draft.ex[+t.dataset.ed]; if(x) x[t.dataset.f] = t.dataset.f === 'n' ? t.value : +t.value; }
+  else if(t.id === 'gName' && gymUi.draft) gymUi.draft.name = t.value;
+  else if(t.dataset.li != null){ const w = gymLive(); if(!w) return; const x = w.ex[+t.dataset.li].sets[+t.dataset.lj]; x[t.dataset.f] = +t.value || 0; saveLive(w); }
+});
+$('#gymBody').addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.id === 'gNewEx'){ e.preventDefault(); $('[data-g="lexadd"]').click(); } });
+
 /* ---------- tabs ---------- */
 function showTab(t){
   if($('#detail').classList.contains('on')) closeDetail();   // leave an open run when switching tabs
   $('#todayView').classList.toggle('on', t === 'today');
   $('#recView').classList.toggle('on', t === 'rec');
   $('#actView').classList.toggle('on', t === 'act');
+  $('#gymView').classList.toggle('on', t === 'gym');
   $('#tabToday').classList.toggle('on', t === 'today');
   $('#tabRec').classList.toggle('on', t === 'rec');
   $('#tabAct').classList.toggle('on', t === 'act');
+  $('#tabGym').classList.toggle('on', t === 'gym');
   if(t === 'rec') setTimeout(() => map.invalidateSize(), 50);
   else if(t === 'today') renderToday();
+  else if(t === 'gym'){ if(gymLive() && gymUi.mode !== 'edit') gymUi.mode = 'live'; renderGym(); }
   else renderList();
 }
 $('#tabToday').onclick = () => showTab('today');
 $('#tabRec').onclick = () => showTab('rec');
 $('#tabAct').onclick = () => showTab('act');
+$('#tabGym').onclick = () => showTab('gym');
 
 /* ---------- cloud sync (Supabase) ---------- */
 // localStorage stays the copy the app reads and writes, so recording works with no signal.
@@ -2296,7 +1734,7 @@ $('#tabAct').onclick = () => showTab('act');
 const SUPABASE_URL = 'https://ixyfuoaehgkhjpcqdwfa.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oawYAqR_CbuGwDIQcxUUKQ_pXhPTP35';
 (function cloudSync(){
-  const SETTINGS = ['vo2', 'coach', 'profile', 'ref', 'skip'];   // trackr.<name>; draft, sensor and sat stay on this device
+  const SETTINGS = ['vo2', 'coach', 'profile', 'ref', 'skip', 'gym'];   // trackr.<name>; draft, gymLive, sensor and sat stay on this device
   if(!/^https:\/\//.test(SUPABASE_URL) || SUPABASE_KEY.length < 20){ $('#cloudMsg').textContent = 'Not set up: this build has no Supabase project. Everything stays on this phone.'; return; }
   const S = Object.assign({ acts: {}, keys: {}, curA: null, curS: null, first: true, last: 0, err: '' }, store.get('trackr.cloud', {}));
   let busy = null, again = false, timer = 0;
@@ -2360,7 +1798,7 @@ const SUPABASE_KEY = 'sb_publishable_oawYAqR_CbuGwDIQcxUUKQ_pXhPTP35';
       SETTINGS.forEach(k => { if(!seenK.has(k) && localStorage.getItem('trackr.' + k) != null) S.keys[k] = 1; });
     }
     S.curA = A.cur; S.curS = B.cur; S.first = false; keep();
-    if(changed){ try{ renderList(); }catch(e){} try{ if($('#todayView').classList.contains('on')) renderToday(); }catch(e){} }
+    if(changed){ try{ renderList(); }catch(e){} try{ if($('#todayView').classList.contains('on')) renderToday(); }catch(e){} try{ if($('#gymView').classList.contains('on') && gymUi.mode === 'list') renderGym(); }catch(e){} }
 
     // 2. push activities in batches of about 1 MB (a delete is kept as deleted = true)
     const have = new Map(store.get('trackr.acts', []).map(a => [a.id, a]));
@@ -2378,8 +1816,13 @@ const SUPABASE_KEY = 'sb_publishable_oawYAqR_CbuGwDIQcxUUKQ_pXhPTP35';
     await send();
     const keys = Object.keys(S.keys);
     if(keys.length){
-      await upsert('trackr_settings', keys.map(k => ({ key: k, value: store.get('trackr.' + k, null) })));
-      keys.forEach(k => delete S.keys[k]); keep();
+      const main = keys.filter(k => k !== 'gym');
+      if(main.length){ await upsert('trackr_settings', main.map(k => ({ key: k, value: store.get('trackr.' + k, null) }))); main.forEach(k => delete S.keys[k]); keep(); }
+      if(S.keys.gym){   // a database set up before the Gym tab rejects this key until supabase/trackr.sql is run again; keep it queued and carry on
+        try{ await upsert('trackr_settings', [{ key: 'gym', value: store.get('trackr.gym', null) }]); delete S.keys.gym; S.gymErr = ''; }
+        catch(e){ if(/check|constraint|violat/i.test(e.message)) S.gymErr = 'Gym workouts are not syncing yet: run supabase/trackr.sql again in the Supabase SQL editor.'; else throw e; }
+        keep();
+      }
     }
   }
   async function run(){
@@ -2399,7 +1842,7 @@ const SUPABASE_KEY = 'sb_publishable_oawYAqR_CbuGwDIQcxUUKQ_pXhPTP35';
     const n = waiting(), off = navigator.onLine === false;
     $('#cloudBadge').textContent = '· ' + (busy ? 'syncing…' : off && n ? n + ' waiting' : S.err ? 'not synced' : n ? n + ' waiting' : 'on');
     $('#cloudMsg').textContent = 'Activities, VO2max readings and coach settings are copied to your Supabase database, and every device running Trackr shares them. '
-      + (busy ? 'Syncing…' : off ? `Offline: ${n} change${n === 1 ? '' : 's'} will upload when you're back online.` : S.err ? `Last sync failed (${S.err}). ${n ? n + ' change' + (n === 1 ? '' : 's') + ' waiting. ' : ''}It retries automatically.` : S.last ? `Synced ${ago(S.last)}.` : 'Not synced yet.');
+      + (S.gymErr ? S.gymErr + ' ' : '') + (busy ? 'Syncing…' : off ? `Offline: ${n} change${n === 1 ? '' : 's'} will upload when you're back online.` : S.err ? `Last sync failed (${S.err}). ${n ? n + ' change' + (n === 1 ? '' : 's') + ' waiting. ' : ''}It retries automatically.` : S.last ? `Synced ${ago(S.last)}.` : 'Not synced yet.');
   }
   $('#cloudNow').onclick = () => run();
   $('#cloud').addEventListener('toggle', ui);
