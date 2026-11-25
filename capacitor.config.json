@@ -2,5 +2,9 @@
   "appId": "com.syahruromadona.trackr",
   "appName": "Trackr",
   "webDir": "www",
-  "backgroundColor": "#121214"
+  "backgroundColor": "#121214",
+  "server": {
+    "url": "https://syahruromadona.github.io/trackr/",
+    "errorPath": "offline.html"
+  }
 }

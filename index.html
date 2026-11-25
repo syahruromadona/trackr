@@ -262,7 +262,7 @@ details.panel summary{cursor:pointer;font-weight:700}
         <label>Longest run (min)<input id="maxLong" type="number" inputmode="numeric" min="30" max="240" step="5"></label>
         <label>Max runs / week<input id="maxRuns" type="number" inputmode="numeric" min="3" max="6"></label>
       </div>
-      <div class="vsub" style="margin-top:12px">About you (stays on this phone). Used to compare your VO2max with people your age and sex.</div>
+      <div class="vsub" style="margin-top:12px">About you (saved on this phone and in your Supabase backup). Used to compare your VO2max with people your age and sex.</div>
       <div class="fld">
         <label>Birth date<input id="pBirth" type="date" style="width:150px"></label>
         <label>Sex<select id="pSex"><option value="">Choose</option><option value="M">Male</option><option value="F">Female</option></select></label>
@@ -322,6 +322,11 @@ details.panel summary{cursor:pointer;font-weight:700}
       <button class="btn" id="impAll">Restore</button>
       <input type="file" id="impFile" accept="application/json,.json" hidden>
     </div>
+    <details class="panel" id="cloud" style="margin:12px 16px 0">
+      <summary>Cloud sync <span id="cloudBadge" style="font-weight:400;color:var(--muted);font-size:13px"></span></summary>
+      <div class="vsub" id="cloudMsg" style="margin-top:8px;line-height:1.5"></div>
+      <div class="tools" style="padding:10px 0 0"><button class="btn" id="cloudNow">Sync now</button></div>
+    </details>
     <div id="list"></div>
   </section>
 
@@ -356,8 +361,15 @@ details.panel summary{cursor:pointer;font-weight:700}
 const $ = s => document.querySelector(s);
 const store = {
   get(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
-  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  set(k, v){
+    try{
+      const prev = store.onSet && k === 'trackr.acts' ? localStorage.getItem(k) : null;   // cloud sync diffs the activity list to find what changed
+      localStorage.setItem(k, JSON.stringify(v));
+      if(store.onSet) try{ store.onSet(k, v, prev); }catch(e){}
+    }catch(e){}
+  },
+  del(k){ try{ localStorage.removeItem(k); if(store.onSet) try{ store.onSet(k, null, null); }catch(e){} }catch(e){} },
+  onSet: null   // set by the cloud sync block below
 };
 
 /* ---------- helpers ---------- */
@@ -2276,6 +2288,128 @@ $('#tabToday').onclick = () => showTab('today');
 $('#tabRec').onclick = () => showTab('rec');
 $('#tabAct').onclick = () => showTab('act');
 
+/* ---------- cloud sync (Supabase) ---------- */
+// localStorage stays the copy the app reads and writes, so recording works with no signal.
+// Changes to the keys below are queued and pushed to Supabase when online; other devices pull them.
+// Talks to Supabase's REST API with fetch (no library). Tables: supabase/trackr.sql.
+// No sign-in: the tables are open to anyone holding this publishable key, which is public in this repo.
+const SUPABASE_URL = 'https://ixyfuoaehgkhjpcqdwfa.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_oawYAqR_CbuGwDIQcxUUKQ_pXhPTP35';
+(function cloudSync(){
+  const SETTINGS = ['vo2', 'coach', 'profile', 'ref', 'skip'];   // trackr.<name>; draft, sensor and sat stay on this device
+  if(!/^https:\/\//.test(SUPABASE_URL) || SUPABASE_KEY.length < 20){ $('#cloudMsg').textContent = 'Not set up: this build has no Supabase project. Everything stays on this phone.'; return; }
+  const S = Object.assign({ acts: {}, keys: {}, curA: null, curS: null, first: true, last: 0, err: '' }, store.get('trackr.cloud', {}));
+  let busy = null, again = false, timer = 0;
+  const keep = () => { try{ localStorage.setItem('trackr.cloud', JSON.stringify(S)); }catch(e){} };
+  const waiting = () => Object.keys(S.acts).length + Object.keys(S.keys).length;
+
+  // queue local changes (called by store.set / store.del)
+  store.onSet = (k, v, prev) => {
+    if(k === 'trackr.acts'){
+      let old = []; try{ old = JSON.parse(prev) || []; }catch(e){}
+      const was = new Map(old.map(a => [a.id, JSON.stringify(a)])), now = new Set();
+      (v || []).forEach(a => { now.add(a.id); if(was.get(a.id) !== JSON.stringify(a)) S.acts[a.id] = 1; });
+      was.forEach((_, id) => { if(!now.has(id)) S.acts[id] = 'del'; });
+    }else if(k.startsWith('trackr.') && SETTINGS.includes(k.slice(7))) S.keys[k.slice(7)] = 1;
+    else return;
+    keep(); ui(); soon(2000);
+  };
+
+  async function call(path, opt = {}){
+    const h = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' };
+    if(SUPABASE_KEY.startsWith('eyJ')) h.Authorization = 'Bearer ' + SUPABASE_KEY;   // legacy anon key; publishable keys go in apikey only
+    const r = await fetch(SUPABASE_URL + path, Object.assign({}, opt, { headers: Object.assign(h, opt.headers || {}) }));
+    if(!r.ok){
+      let m = 'error ' + r.status; try{ const j = await r.json(); m = j.message || j.msg || j.error || m; }catch(e){}
+      throw new Error(m);
+    }
+    return r.status === 204 || r.status === 201 ? null : r.json();
+  }
+  // everything changed since the last pull
+  async function pull(table, cur){
+    const rows = [];
+    for(;;){
+      const page = await call(`/rest/v1/${table}?select=*&order=updated_at.asc&limit=500` + (cur ? '&updated_at=gt.' + encodeURIComponent(cur) : ''));
+      rows.push(...page); if(page.length) cur = page[page.length - 1].updated_at;
+      if(page.length < 500) return { rows, cur };
+    }
+  }
+  const upsert = (table, rows) => call(`/rest/v1/${table}`, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(rows) });
+
+  async function sync(){
+    // 1. pull; anything with a change still waiting on this phone keeps the local copy
+    const A = await pull('trackr_activities', S.curA);
+    let list = store.get('trackr.acts', []), changed = false;
+    const byId = new Map(list.map(a => [a.id, a])), seen = new Set();
+    A.rows.forEach(r => {
+      seen.add(r.id);
+      if(S.acts[r.id]) return;
+      if(r.deleted || !r.data){ if(byId.delete(r.id)) changed = true; }
+      else if(JSON.stringify(byId.get(r.id)) !== JSON.stringify(r.data)){ byId.set(r.id, r.data); changed = true; }
+    });
+    if(changed){ list = [...byId.values()].sort((a, b) => b.date - a.date); localStorage.setItem('trackr.acts', JSON.stringify(list)); }
+    const B = await pull('trackr_settings', S.curS), seenK = new Set();
+    B.rows.forEach(r => {
+      seenK.add(r.key);
+      if(S.keys[r.key] || !SETTINGS.includes(r.key)) return;
+      const k = 'trackr.' + r.key, v = r.value == null ? null : JSON.stringify(r.value);
+      if(localStorage.getItem(k) !== v){ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); changed = true; }
+    });
+    if(S.first){   // first sync on this device: upload whatever the cloud doesn't have yet
+      list.forEach(a => { if(!seen.has(a.id)) S.acts[a.id] = 1; });
+      SETTINGS.forEach(k => { if(!seenK.has(k) && localStorage.getItem('trackr.' + k) != null) S.keys[k] = 1; });
+    }
+    S.curA = A.cur; S.curS = B.cur; S.first = false; keep();
+    if(changed){ try{ renderList(); }catch(e){} try{ if($('#todayView').classList.contains('on')) renderToday(); }catch(e){} }
+
+    // 2. push activities in batches of about 1 MB (a delete is kept as deleted = true)
+    const have = new Map(store.get('trackr.acts', []).map(a => [a.id, a]));
+    let batch = [], size = 0;
+    const send = async () => {
+      if(!batch.length) return;
+      await upsert('trackr_activities', batch.map(x => x.row));
+      batch.forEach(x => { if(S.acts[x.row.id] === x.mark) delete S.acts[x.row.id]; }); keep(); batch = []; size = 0;
+    };
+    for(const id of Object.keys(S.acts)){
+      const a = have.get(id), n = a ? JSON.stringify(a).length : 50;
+      if(size + n > 1e6) await send();
+      batch.push({ row: { id, data: a || null, deleted: !a }, mark: S.acts[id] }); size += n;
+    }
+    await send();
+    const keys = Object.keys(S.keys);
+    if(keys.length){
+      await upsert('trackr_settings', keys.map(k => ({ key: k, value: store.get('trackr.' + k, null) })));
+      keys.forEach(k => delete S.keys[k]); keep();
+    }
+  }
+  async function run(){
+    if(busy){ again = true; return busy; }
+    if(navigator.onLine === false){ ui(); return; }
+    busy = (async () => {
+      try{ do{ again = false; await sync(); }while(again); S.last = Date.now(); S.err = ''; }
+      catch(e){ S.err = /fetch|network|load failed/i.test(e.message) ? 'no connection' : e.message; }
+      keep(); busy = null; ui();
+    })();
+    ui(); return busy;
+  }
+  function soon(ms){ clearTimeout(timer); timer = setTimeout(run, ms); }
+
+  function ago(t){ const s = (Date.now() - t) / 1000; return s < 60 ? 'just now' : s < 3600 ? Math.round(s / 60) + ' min ago' : s < 86400 ? Math.round(s / 3600) + ' h ago' : new Date(t).toLocaleDateString(); }
+  function ui(){
+    const n = waiting(), off = navigator.onLine === false;
+    $('#cloudBadge').textContent = '· ' + (busy ? 'syncing…' : off && n ? n + ' waiting' : S.err ? 'not synced' : n ? n + ' waiting' : 'on');
+    $('#cloudMsg').textContent = 'Activities, VO2max readings and coach settings are copied to your Supabase database, and every device running Trackr shares them. '
+      + (busy ? 'Syncing…' : off ? `Offline: ${n} change${n === 1 ? '' : 's'} will upload when you're back online.` : S.err ? `Last sync failed (${S.err}). ${n ? n + ' change' + (n === 1 ? '' : 's') + ' waiting. ' : ''}It retries automatically.` : S.last ? `Synced ${ago(S.last)}.` : 'Not synced yet.');
+  }
+  $('#cloudNow').onclick = () => run();
+  $('#cloud').addEventListener('toggle', ui);
+  addEventListener('online', () => soon(500));
+  addEventListener('offline', ui);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') soon(800); });
+  setInterval(() => { if(document.visibilityState === 'visible') run(); }, 5 * 60000);
+  ui(); soon(1500);
+})();
+
 /* ---------- repair recordings made while the profile used the phone's own speed ---------- */
 // Between the Doppler change and its reversal, recordings stored the phone-speed profile in `prof`. Rebuild `prof` from positions and keep the old one as `dop`.
 (function repairProfiles(){
@@ -2298,7 +2432,7 @@ if(draft && draft.segs && (draft.status === 'running' || draft.status === 'pause
   document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x.dataset.type === type));
   toast('Restored your unfinished activity (paused).');
 }
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(() => {});
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});   // also in the Android app, which loads from GitHub Pages and needs this cache to open offline
 protectStorage();
 render(); renderList(); drawSpark();
 if(act) showTab('rec'); else renderToday();   // opening the app mid-run goes to the run; otherwise to today's briefing

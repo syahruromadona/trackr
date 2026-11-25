@@ -33,7 +33,7 @@ The app opens on **Today**: a briefing that reads your history and tells you wha
 ## Longevity focus
 
 - **Train → Longevity** compares your VO2max with age/sex norms (FRIEND registry 2022, treadmill-measured) and shows the value needed for the 25th, 50th, 75th and 90th percentile
-- Birth date and sex are entered in *Coach settings* and stay on the phone (they are also carried in Back up / Restore)
+- Birth date and sex are entered in *Coach settings* and are saved on the phone and in the cloud sync (they are also carried in Back up / Restore)
 - The coach picks run vs recovery days adaptively from the last 6 days, with a weekly run budget that ramps up about one run a week, and suggests strength on recovery days (log a 20-min session in one tap)
 - Today shows active minutes against the 150 min/week guideline and strength sessions against 2/week
 
@@ -66,3 +66,18 @@ Coach settings (Today tab) has a 15-second **motion sensor check**. It reports w
 whether the permission is blocked (with the exact fix), the readings per second, and whether the app can count steps for cadence.
 The last result is kept and included in the weekly summary. Recordings also store how many motion readings arrived (`mot`),
 so a session with no cadence can be explained afterwards.
+
+## Cloud sync (Supabase)
+
+- Activities, VO2max readings, coach settings, profile and today's rest-day flag are copied to a Supabase project and shared by every device running Trackr. The in-progress recording, sensor check and map style stay on each device
+- The phone's own storage is still what the app reads and writes, so recording works with no signal; changes upload a couple of seconds later, when the app comes back to the foreground, when the connection returns, and every 5 minutes. *Activities → Cloud sync* shows the status and has a *Sync now* button
+- The first sync on a device uploads everything already on it and downloads everything else
+- Deleting an activity marks it `deleted` in the database (the row stays, so it can be recovered from the Supabase table editor)
+- Setup: run [`supabase/trackr.sql`](supabase/trackr.sql) once in the project's SQL editor, and put the project URL and publishable key in `SUPABASE_URL` / `SUPABASE_KEY` near the end of `index.html`
+- There is no sign-in. The publishable key is public in this repo, so anyone who has it can read and change the synced data
+
+## Android app
+
+- A Capacitor wrapper (`android/`) adds background GPS. GitHub Actions builds a debug APK (artifact `trackr-debug-apk`)
+- The app loads Trackr from GitHub Pages (`server.url` in `capacitor.config.json`), so a change merged to `main` reaches the phone on its next launch, with no new APK. A new APK is only needed when native code, plugins or `capacitor.config.json` change
+- The service worker keeps a copy for offline launches. If the very first launch has no connection, the app shows `offline.html`
