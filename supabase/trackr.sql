@@ -19,10 +19,14 @@ create table if not exists public.trackr_activities (
 );
 
 create table if not exists public.trackr_settings (
-  key text primary key check (key in ('vo2', 'coach', 'profile', 'ref', 'skip')),
+  key text primary key check (key in ('vo2', 'coach', 'profile', 'ref', 'skip', 'gym')),
   value jsonb,
   updated_at timestamptz not null default clock_timestamp()
 );
+
+-- Widen the allowed keys on a database made before the Gym tab (gym = workout templates).
+alter table public.trackr_settings drop constraint if exists trackr_settings_key_check;
+alter table public.trackr_settings add constraint trackr_settings_key_check check (key in ('vo2', 'coach', 'profile', 'ref', 'skip', 'gym'));
 
 create index if not exists trackr_activities_changed on public.trackr_activities (updated_at);
 create index if not exists trackr_settings_changed on public.trackr_settings (updated_at);
